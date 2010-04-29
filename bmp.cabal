@@ -30,7 +30,12 @@ Library
 
   Exposed-modules:
         Codec.BMP
-        Codec.BMP.Types
+
+  Other-modules:
+        Codec.BMP.Base
+        Codec.BMP.BitmapInfo
         Codec.BMP.Error
+        Codec.BMP.FileHeader
+        Codec.BMP.Pack
         Codec.BMP.Unpack
        

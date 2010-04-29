@@ -1,12 +1,15 @@
 {-# OPTIONS_HADDOCK hide #-}
 module Codec.BMP.FileHeader
 	( FileHeader	(..)
-	, sizeOfFileHeader)
+	, bmpMagic
+	, sizeOfFileHeader
+	, checkFileHeader)
 where
+import Codec.BMP.BitmapInfo
+import Codec.BMP.Error
 import Data.Binary
 import Data.Binary.Get	
 import Data.Binary.Put
-	
 	
 -- File Headers -----------------------------------------------------------------------------------
 -- | BMP file header.
@@ -33,6 +36,10 @@ data FileHeader
 sizeOfFileHeader :: Int
 sizeOfFileHeader = 14
 
+-- | Magic number that should come at the start of a BMP file.
+bmpMagic :: Word16
+bmpMagic = 0x4d42
+
 
 instance Binary FileHeader where
  get 
@@ -55,3 +62,22 @@ instance Binary FileHeader where
 	putWord16le	$ fileHeaderReserved1 header
 	putWord16le	$ fileHeaderReserved2 header
 	putWord32le	$ fileHeaderOffset header
+	
+
+-- | Check a file header for problems and unsupported features.
+checkFileHeader :: FileHeader -> Maybe Error	
+checkFileHeader header
+	| fileHeaderType header /= bmpMagic
+	= Just	$ ErrorBadMagic (fileHeaderType header)
+
+	| fileHeaderReserved1 header /= 0
+	= Just 	$ ErrorReservedFieldNotZero
+
+	| fileHeaderReserved2 header /= 0
+	= Just 	$ ErrorReservedFieldNotZero
+
+	| fromIntegral (fileHeaderOffset header) /= sizeOfFileHeader + sizeOfBitmapInfoV3
+	= Just	$ ErrorDodgyOffsetInFileHeader
+
+	| otherwise
+	= Nothing

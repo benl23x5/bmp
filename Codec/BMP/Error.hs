@@ -6,11 +6,12 @@ import Data.Word
 
 -- | Things that can go wrong when loading a BMP file.
 data Error
-	= ErrorBadMagic 		Word16
-	| ErrorReadOfFileHeaderFailed
+	= ErrorReadOfFileHeaderFailed
 	| ErrorReadOfImageHeaderFailed
 	| ErrorReadOfImageDataFailed
+	| ErrorBadMagic 		Word16
 	| ErrorReservedFieldNotZero
+	| ErrorDodgyOffsetInFileHeader
 	| ErrorUnhandledPlanesCount	Int
 	| ErrorUnhandledColorDepth	Int
 	| ErrorUnhandledCompressionMode	Int

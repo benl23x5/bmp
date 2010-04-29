@@ -2,9 +2,11 @@
 module Codec.BMP.BitmapInfo
 	( BitmapInfo	(..)
 	, BitmapInfoV3	(..)
-	, sizeOfBitmapInfoV3)
+	, sizeOfBitmapInfoV3
+	, checkBitmapInfoV3)
 
 where
+import Codec.BMP.Error
 import Data.Binary
 import Data.Binary.Get	
 
@@ -37,7 +39,7 @@ data BitmapInfoV3
 	  -- | Image compression mode. 0 = uncompressed.
 	, dib3Compression	:: Word32
 
-	  -- | Size of image.
+	  -- | Size of raw image data.
 	, dib3ImageSize		:: Word32
 
 	  -- | Prefered resolution in pixels per meter, along the X axis.
@@ -101,7 +103,32 @@ instance Binary BitmapInfoV3 where
 	put	$ dib3ColorsImportant header
 	
 	
+-- | Check headers for problems and unsupported features.	 
+checkBitmapInfoV3 :: BitmapInfoV3 ->  Maybe Error
+checkBitmapInfoV3 header
 	
+	| dib3Planes header /= 1
+	= Just	$ ErrorUnhandledPlanesCount 
+		$ fromIntegral $ dib3Planes header
+	
+	| dib3BitCount header /= 24
+	= Just 	$ ErrorUnhandledColorDepth  
+		$ fromIntegral $ dib3BitCount header
+	
+	| dib3Compression header /= 0
+	= Just	$ ErrorUnhandledCompressionMode 
+		$ fromIntegral $ dib3Compression header
+
+	| dib3ImageSize header == 0
+	= Just $ ErrorZeroImageSize
+	
+	| dib3ImageSize header `mod` dib3Height header /= 0
+	= Just $ ErrorLacksWholeNumberOfLines
+
+	| otherwise
+	= Nothing
+
+
 	
 	
 	

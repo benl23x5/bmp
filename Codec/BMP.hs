@@ -20,12 +20,13 @@ module Codec.BMP
 	, hGetBMP
 	, unpackBMPToRGBA32)
 where
-import Codec.BMP.Types
+import Codec.BMP.Base
 import Codec.BMP.Error
 import Codec.BMP.Unpack
 import Codec.BMP.FileHeader
 import Codec.BMP.BitmapInfo
 import Data.Binary
+import Data.Maybe
 import System.IO
 import Data.ByteString		as BS
 import Data.ByteString.Lazy	as BSL
@@ -44,7 +45,10 @@ hGetBMP h
 	
 	
 hGetBMP2 h fileHeader
- | fileHeaderType fileHeader /= 0x4d42
+ -- Check the magic before doing anything else.
+ --	If the specified file is not a BMP file then we'd prefer to get 
+ --	this error than a `ReadOfImageHeaderFailed`.
+ | fileHeaderType fileHeader /= bmpMagic
  = return $ Left $ ErrorBadMagic (fileHeaderType fileHeader)
 	
  | otherwise
@@ -55,7 +59,9 @@ hGetBMP2 h fileHeader
 	 else 	hGetBMP3 h fileHeader (decode buf)
 			
 hGetBMP3 h fileHeader imageHeader
- | Just err	<- checkHeaders fileHeader imageHeader
+ | (err : _)	<- catMaybes
+			[ checkFileHeader   fileHeader
+			, checkBitmapInfoV3 imageHeader]
  = return $ Left err
 
  | otherwise
@@ -70,36 +76,4 @@ hGetBMP3 h fileHeader imageHeader
 		{ bmpFileHeader 	= fileHeader
 		, bmpBitmapInfo		= InfoV3 imageHeader
 		, bmpRawImageData	= imageData }
-
-
--- | Check headers for problems and unsupported features.	 
-checkHeaders :: FileHeader -> BitmapInfoV3 ->  Maybe Error
-checkHeaders fileHeader imageHeader
-	| fileHeaderReserved1 fileHeader /= 0
-	= Just 	$ ErrorReservedFieldNotZero
-
-	| fileHeaderReserved2 fileHeader /= 0
-	= Just 	$ ErrorReservedFieldNotZero
-
-	| dib3Planes imageHeader /= 1
-	= Just	$ ErrorUnhandledPlanesCount 
-		$ fromIntegral $ dib3Planes imageHeader
-	
-	| dib3BitCount imageHeader /= 24
-	= Just 	$ ErrorUnhandledColorDepth  
-		$ fromIntegral $ dib3BitCount imageHeader
-	
-	| dib3Compression imageHeader /= 0
-	= Just	$ ErrorUnhandledCompressionMode 
-		$ fromIntegral $ dib3Compression imageHeader
-
-	| dib3ImageSize imageHeader == 0
-	= Just $ ErrorZeroImageSize
-	
-	| dib3ImageSize imageHeader `mod` dib3Height imageHeader /= 0
-	= Just $ ErrorLacksWholeNumberOfLines
-
-
-	| otherwise
-	= Nothing
 
