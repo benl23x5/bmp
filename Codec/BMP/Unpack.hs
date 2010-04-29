@@ -1,13 +1,11 @@
 {-# OPTIONS_HADDOCK hide #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 module Codec.BMP.Unpack
-	( unpackFileHeader
-	, unpackBitmapInfoV3
-	, unpackBMPToRGBA32
+	( unpackBMPToRGBA32
 	, unpackRGB24ToRGBA32)
 where	
 import Codec.BMP.Types
-import Codec.BMP.Base
+import Codec.BMP.BitmapInfo
 import Foreign.Ptr
 import Foreign.Marshal.Alloc
 import Foreign.Storable
@@ -16,33 +14,6 @@ import Data.Word
 import Data.ByteString		as BS
 import Data.ByteString.Unsafe	as BS
 
--- | Unpack a `FileHeader` from a `ByteString`
-unpackFileHeader :: ByteString -> FileHeader
-unpackFileHeader str	
-	= FileHeader
-	{ fileHeaderType	= getLSBWord16 str 0
-	, fileHeaderSize	= getLSBWord32 str 2
-	, fileHeaderReserved1	= getLSBWord16 str 6
-	, fileHeaderReserved2   = getLSBWord16 str 8
-	, fileHeaderOffset	= getLSBWord32 str 10 }
-
-
--- | Unpack a `BitmapInfoV3` header from a `ByteString`.
-unpackBitmapInfoV3 :: ByteString -> BitmapInfoV3
-unpackBitmapInfoV3 str
-	= BitmapInfoV3
-	{ dib3Size		= getLSBWord32 str 0
-	, dib3Width		= getLSBWord32 str 4
-	, dib3Height		= getLSBWord32 str 8
-	, dib3Planes		= getLSBWord16 str 12 
-	, dib3BitCount		= getLSBWord16 str 14
-	, dib3Compression	= getLSBWord32 str 16
-	, dib3ImageSize		= getLSBWord32 str 20
-	, dib3PelsPerMeterX	= getLSBWord32 str 24
-	, dib3PelsPerMeterY	= getLSBWord32 str 28
-	, dib3ColorsUsed	= getLSBWord32 str 32
-	, dib3ColorsImportant	= getLSBWord32 str 36 }
-	
 
 -- | Unpack a BMP image to a string of RGBA component values,
 --	with no padding between the lines.

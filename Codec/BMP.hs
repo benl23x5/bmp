@@ -18,15 +18,17 @@ module Codec.BMP
 	, BitmapInfoV3	(..)
 	, Error         (..)
 	, hGetBMP
-	, unpackFileHeader
-	, unpackBitmapInfoV3
 	, unpackBMPToRGBA32)
 where
 import Codec.BMP.Types
 import Codec.BMP.Error
 import Codec.BMP.Unpack
+import Codec.BMP.FileHeader
+import Codec.BMP.BitmapInfo
+import Data.Binary
 import System.IO
 import Data.ByteString		as BS
+import Data.ByteString.Lazy	as BSL
 
 		
 -- | Get a BMP image from a file handle.
@@ -35,13 +37,10 @@ import Data.ByteString		as BS
 hGetBMP :: Handle -> IO (Either Error BMP)
 hGetBMP h
  = do	-- load the file header.
-	buf	<- BS.hGet h sizeOfFileHeader
-	if BS.length buf /= sizeOfFileHeader
+	buf	<- BSL.hGet h sizeOfFileHeader
+	if (fromIntegral $ BSL.length buf) /= sizeOfFileHeader
 	 then 	return $ Left ErrorReadOfFileHeaderFailed
-	 else do
-		let fileHeader	= unpackFileHeader buf
-		print fileHeader
-		hGetBMP2 h fileHeader
+	 else	hGetBMP2 h (decode buf)
 	
 	
 hGetBMP2 h fileHeader
@@ -50,13 +49,10 @@ hGetBMP2 h fileHeader
 	
  | otherwise
  = do	-- load the image header.
-	buf	<- BS.hGet h sizeOfBitmapInfoV3
-	if BS.length buf /= sizeOfBitmapInfoV3
+	buf	<- BSL.hGet h sizeOfBitmapInfoV3
+	if (fromIntegral $ BSL.length buf) /= sizeOfBitmapInfoV3
 	 then 	return $ Left ErrorReadOfImageHeaderFailed
-	 else do
-		let imageHeader	= unpackBitmapInfoV3 buf
-		print imageHeader
-		hGetBMP3 h fileHeader imageHeader
+	 else 	hGetBMP3 h fileHeader (decode buf)
 			
 hGetBMP3 h fileHeader imageHeader
  | Just err	<- checkHeaders fileHeader imageHeader
@@ -67,7 +63,7 @@ hGetBMP3 h fileHeader imageHeader
 	let len		= fromIntegral $ dib3ImageSize imageHeader
 	imageData	<- BS.hGet h len
 				
-	if BS.length imageData /= len
+	if (fromIntegral $ BS.length imageData) /= len
 	 then return $ Left ErrorReadOfImageDataFailed
 	 else return 
 		$ Right $ BMP 
