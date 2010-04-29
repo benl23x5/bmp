@@ -9,12 +9,15 @@ data Error
 	= ErrorReadOfFileHeaderFailed
 	| ErrorReadOfImageHeaderFailed
 	| ErrorReadOfImageDataFailed
-	| ErrorBadMagic 		Word16
+	| ErrorBadMagic 			Word16
 	| ErrorReservedFieldNotZero
-	| ErrorDodgyOffsetInFileHeader
-	| ErrorUnhandledPlanesCount	Int
-	| ErrorUnhandledColorDepth	Int
-	| ErrorUnhandledCompressionMode	Int
+	| ErrorDodgyFileHeaderFieldOffset	Int
+	| ErrorDodgyFileHeaderFieldFileSize	Int
+	| ErrorFileIsTruncated
+	| ErrorUnhandledBitmapHeaderSize  	Int
+	| ErrorUnhandledPlanesCount		Int
+	| ErrorUnhandledColorDepth		Int
+	| ErrorUnhandledCompressionMode		Int
 	| ErrorZeroImageSize
 	| ErrorLacksWholeNumberOfLines
 	deriving (Eq, Show)

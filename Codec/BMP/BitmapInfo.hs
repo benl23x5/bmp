@@ -9,6 +9,7 @@ where
 import Codec.BMP.Error
 import Data.Binary
 import Data.Binary.Get	
+import Data.Binary.Put
 
 -- Image Headers ----------------------------------------------------------------------------------
 -- | A wrapper for the bitmap info, 
@@ -16,6 +17,14 @@ import Data.Binary.Get
 data BitmapInfo
 	= InfoV3 BitmapInfoV3
 	deriving (Show)
+
+instance Binary BitmapInfo where
+ get
+  = do	info	<- get
+	return	$ InfoV3 info
+
+ put (InfoV3 info)
+  	= put info
 
 -- | Device Independent Bitmap (DIB) header for Windows V3.
 --	Numbers stated on each field are the offsets (in bytes) from the start of the header for that field.
@@ -90,22 +99,26 @@ instance Binary BitmapInfoV3 where
 		, dib3ColorsImportant	= cimp }
 
  put header
-  = do	put	$ dib3Size header
-	put	$ dib3Width header
-	put	$ dib3Height header
-	put 	$ dib3Planes header
-	put	$ dib3BitCount header
-	put	$ dib3Compression header
-	put	$ dib3ImageSize header
-	put	$ dib3PelsPerMeterX header
-	put	$ dib3PelsPerMeterY header
-	put	$ dib3ColorsUsed header
-	put	$ dib3ColorsImportant header
+  = do	putWord32le 	$ dib3Size header
+	putWord32le	$ dib3Width header
+	putWord32le	$ dib3Height header
+	putWord16le	$ dib3Planes header
+	putWord16le	$ dib3BitCount header
+	putWord32le	$ dib3Compression header
+	putWord32le	$ dib3ImageSize header
+	putWord32le	$ dib3PelsPerMeterX header
+	putWord32le	$ dib3PelsPerMeterY header
+	putWord32le	$ dib3ColorsUsed header
+	putWord32le	$ dib3ColorsImportant header
 	
 	
 -- | Check headers for problems and unsupported features.	 
 checkBitmapInfoV3 :: BitmapInfoV3 ->  Maybe Error
 checkBitmapInfoV3 header
+	
+	| dib3Size header /= (fromIntegral sizeOfBitmapInfoV3)
+	= Just	$ ErrorUnhandledBitmapHeaderSize 
+		$ fromIntegral $ dib3Size header
 	
 	| dib3Planes header /= 1
 	= Just	$ ErrorUnhandledPlanesCount 

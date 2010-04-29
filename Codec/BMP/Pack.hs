@@ -16,10 +16,13 @@ import Data.ByteString		as BS
 import Data.ByteString.Unsafe	as BS
 import Prelude			as P
 
+-- | Pack a string of RGBA component values into a BMP image.
+--	The alpha component is ignored. 
+--	If the given dimensions don't match the input string then an error is thrown.
 packRGBA32ToBMP
-	:: Int 
-	-> Int 
-	-> ByteString
+	:: Int 		-- ^ Width of image.
+	-> Int 		-- ^ Height of image.
+	-> ByteString	-- ^ A string of RGBA component values. Must have length (@width * height * 4@)
 	-> BMP
 	
 packRGBA32ToBMP width height str
@@ -32,7 +35,10 @@ packRGBA32ToBMP width height str
 	fileHeader
 		= FileHeader
 		{ fileHeaderType	= bmpMagic
-		, fileHeaderSize	= fromIntegral sizeOfFileHeader
+
+		, fileHeaderFileSize	= fromIntegral
+					$ sizeOfFileHeader + sizeOfBitmapInfoV3	+ BS.length imageData
+
 		, fileHeaderReserved1	= 0
 		, fileHeaderReserved2	= 0
 		, fileHeaderOffset	= fromIntegral (sizeOfFileHeader + sizeOfBitmapInfoV3) }
@@ -41,6 +47,7 @@ packRGBA32ToBMP width height str
 		= BitmapInfoV3
 		{ dib3Size		= fromIntegral sizeOfBitmapInfoV3
 		, dib3Width		= fromIntegral width
+		, dib3Height		= fromIntegral height
 		, dib3Planes		= 1
 		, dib3BitCount		= 24
 		, dib3Compression	= 0
@@ -80,7 +87,11 @@ packRGBA32ToRGB24 width height str
  = error "Codec.BMP.packRGBAToRGB24: given image dimensions don't match input data."
 
  | otherwise
- = let	padPerLine	= 4 - (width `mod` 4)
+ = let	padPerLine	
+	 = case (width * 3) `mod` 4 of
+		0	-> 0
+		x	-> 4 - x
+				
 	sizeDest	= height * (width * 3 + padPerLine)
    in	unsafePerformIO
 	 $ allocaBytes sizeDest 	$ \bufDest ->
@@ -113,8 +124,8 @@ packRGBA32ToRGB24' width height pad ptrSrc ptrDest
 		blue	:: Word8  <- peekByteOff ptrSrc (oSrc + 2)
 	
 		pokeByteOff ptrDest (oDest + 0) blue
-		pokeByteOff ptrDest (oDest + 0) green
-		pokeByteOff ptrDest (oDest + 0) red
+		pokeByteOff ptrDest (oDest + 1) green
+		pokeByteOff ptrDest (oDest + 2) red
 		
 		go (posX + 1) posY (oSrc + 4) (oDest + 3)
 

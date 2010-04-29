@@ -3,14 +3,20 @@
 -- | Reading and writing uncompressed 24 bit BMP files.
 --	We only handle Windows V3 file headers, but this is the most common.
 --
---  Typical usage is like:
+-- To write a file do something like:
+--
+--  > do let bmp    =  packRGBA32ToBMP width height $ Data.ByteString.pack [some list of Word8s]
+--  >    handle     <- openFile fileName WriteMode
+--  >    hPutBMP handle bmp
+--
+-- To read a file do something like:
 --
 --  > do handle     <- openFile fileName ReadMode
 --  >    Right bmp  <- hGetBMP handle 
 --  >    let rgba   =  unpackBMPToRGBA32 bmp
+--  >    let (width, height) = bmpDimensions bmp
 --  >    ... 
 --  
---
 module Codec.BMP
 	( BMP		(..)
 	, FileHeader	(..)
@@ -18,11 +24,15 @@ module Codec.BMP
 	, BitmapInfoV3	(..)
 	, Error         (..)
 	, hGetBMP
-	, unpackBMPToRGBA32)
+	, hPutBMP
+	, unpackBMPToRGBA32
+	, packRGBA32ToBMP 
+	, bmpDimensions)
 where
 import Codec.BMP.Base
 import Codec.BMP.Error
 import Codec.BMP.Unpack
+import Codec.BMP.Pack
 import Codec.BMP.FileHeader
 import Codec.BMP.BitmapInfo
 import Data.Binary
@@ -76,4 +86,24 @@ hGetBMP3 h fileHeader imageHeader
 		{ bmpFileHeader 	= fileHeader
 		, bmpBitmapInfo		= InfoV3 imageHeader
 		, bmpRawImageData	= imageData }
+
+
+-- | Write a BMP image to a file handle.
+--	The size of the provided image data is checked against the given dimensions.
+--	If these don't match then an error is thrown.
+hPutBMP :: Handle -> BMP -> IO ()
+hPutBMP h bmp
+ = do	BSL.hPut h (encode $ bmpFileHeader bmp)
+	BSL.hPut h (encode $ bmpBitmapInfo bmp)
+	BS.hPut h $ bmpRawImageData bmp
+
+
+-- | Get the width and height of an image.
+--	It's better to use this function than to access the headers directly.
+bmpDimensions :: BMP -> (Int, Int)
+bmpDimensions bmp
+ = case bmpBitmapInfo bmp of
+	InfoV3 info
+	 -> ( fromIntegral $ dib3Width info
+	    , fromIntegral $ dib3Height info)
 

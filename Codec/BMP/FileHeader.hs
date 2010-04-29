@@ -19,7 +19,7 @@ data FileHeader
 	  fileHeaderType	:: Word16
 	
 	  -- | Size of the file, in bytes.
-	, fileHeaderSize	:: Word32
+	, fileHeaderFileSize	:: Word32
 
 	  -- | Reserved, must be zero.
 	, fileHeaderReserved1	:: Word16
@@ -51,14 +51,14 @@ instance Binary FileHeader where
 	
 	return	$ FileHeader
 		{ fileHeaderType	= t
-		, fileHeaderSize	= size
+		, fileHeaderFileSize	= size
 		, fileHeaderReserved1	= res1
 		, fileHeaderReserved2   = res2
 		, fileHeaderOffset	= offset }
 
  put header
   = do	putWord16le	$ fileHeaderType header
-	putWord32le	$ fileHeaderSize header
+	putWord32le	$ fileHeaderFileSize header
 	putWord16le	$ fileHeaderReserved1 header
 	putWord16le	$ fileHeaderReserved2 header
 	putWord32le	$ fileHeaderOffset header
@@ -70,6 +70,11 @@ checkFileHeader header
 	| fileHeaderType header /= bmpMagic
 	= Just	$ ErrorBadMagic (fileHeaderType header)
 
+	| fileHeaderFileSize header 
+		< fromIntegral (sizeOfFileHeader + sizeOfBitmapInfoV3)
+	= Just	$ ErrorDodgyFileHeaderFieldFileSize 
+		$ fromIntegral $ fileHeaderFileSize header
+
 	| fileHeaderReserved1 header /= 0
 	= Just 	$ ErrorReservedFieldNotZero
 
@@ -77,7 +82,8 @@ checkFileHeader header
 	= Just 	$ ErrorReservedFieldNotZero
 
 	| fromIntegral (fileHeaderOffset header) /= sizeOfFileHeader + sizeOfBitmapInfoV3
-	= Just	$ ErrorDodgyOffsetInFileHeader
+	= Just	$ ErrorDodgyFileHeaderFieldOffset
+		$ fromIntegral $ fileHeaderOffset header
 
 	| otherwise
 	= Nothing

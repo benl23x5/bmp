@@ -16,7 +16,7 @@ import Prelude			as P
 
 
 -- | Unpack a BMP image to a string of RGBA component values.
---	The A (alpha) value is set to 255 for every pixel.
+--	The alpha component is set to 255 for every pixel.
 unpackBMPToRGBA32 :: BMP -> ByteString
 unpackBMPToRGBA32 bmp 
  = case bmpBitmapInfo bmp of
@@ -28,7 +28,7 @@ unpackBMPToRGBA32 bmp
 
 
 -- | Unpack raw, uncompressed 24 bit BMP image data to a string of RGBA component values.
---	The A (alpha) value is set to 255 for every pixel.
+--	The alpha component is set to 255 for every pixel.
 unpackRGB24ToRGBA32
 	:: Int 			-- Width of image.
 	-> Int			-- Height of image.
