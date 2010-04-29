@@ -1,0 +1,37 @@
+Name:                bmp
+Version:             1.0.0.0
+License:             MIT
+License-file:        LICENSE
+Author:              Ben Lippmeier
+Maintainer:          bmp@ouroborus.net
+Build-Type:          Simple
+Cabal-Version:       >=1.6
+Stability:           experimental
+Category:            Data Structures
+Homepage:            http://trac.haskell.org/bmp
+Bug-reports:         http://trac.haskell.org/bmp/newticket
+Description:
+	Read and write uncompressed 24bit BMP image files. 100% Haskell implementation.
+
+Synopsis:
+        Read and write uncompressed 24bit BMP image files.
+
+Tested-with: GHC == 6.12.1
+
+Library
+  Build-Depends: 
+        base                 >= 4       && < 5,
+        bytestring           >= 0.9.1.5 && < 1.0.0.0,
+        QuickCheck           >= 2.1.0.3 && < 2.2.0.0
+
+  ghc-options:
+        -O -Wall -fno-warn-missing-signatures -fno-warn-missing-fields
+
+  Exposed-modules:
+        Codec.BMP
+        Codec.BMP.Header
+        Codec.BMP.Error
+
+  Other-modules:
+        Codec.BMP.Base
+       
