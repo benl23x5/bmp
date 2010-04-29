@@ -11,7 +11,7 @@ Category:            Data Structures
 Homepage:            http://trac.haskell.org/bmp
 Bug-reports:         http://trac.haskell.org/bmp/newticket
 Description:
-	Read and write uncompressed 24bit BMP image files. 100% Haskell implementation.
+	Read and write uncompressed 24bit BMP image files. 100% robust Haskell implementation.
 
 Synopsis:
         Read and write uncompressed 24bit BMP image files.

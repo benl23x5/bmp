@@ -6,13 +6,11 @@
 -- To write a file do something like:
 --
 --  > do let bmp    =  packRGBA32ToBMP width height $ Data.ByteString.pack [some list of Word8s]
---  >    handle     <- openFile fileName WriteMode
---  >    hPutBMP handle bmp
+--  >    writeBMP fileName bmp
 --
 -- To read a file do something like:
 --
---  > do handle     <- openFile fileName ReadMode
---  >    Right bmp  <- hGetBMP handle 
+--  > do Right bmp  <- readBMP fileName
 --  >    let rgba   =  unpackBMPToRGBA32 bmp
 --  >    let (width, height) = bmpDimensions bmp
 --  >    ... 
@@ -23,6 +21,8 @@ module Codec.BMP
 	, BitmapInfo    (..)
 	, BitmapInfoV3	(..)
 	, Error         (..)
+	, readBMP
+	, writeBMP
 	, hGetBMP
 	, hPutBMP
 	, unpackBMPToRGBA32
@@ -41,7 +41,13 @@ import System.IO
 import Data.ByteString		as BS
 import Data.ByteString.Lazy	as BSL
 
-		
+-- Reading ----------------------------------------------------------------------------------------
+-- | Wrapper for `hGetBMP`
+readBMP :: FilePath -> IO (Either Error BMP)
+readBMP fileName
+ = do	h	<- openBinaryFile fileName ReadMode
+	hGetBMP h
+	
 -- | Get a BMP image from a file handle.
 --	The file is checked for problems and unsupported features when read.
 --	If there is anything wrong this gives an `Error` instead.
@@ -86,6 +92,14 @@ hGetBMP3 h fileHeader imageHeader
 		{ bmpFileHeader 	= fileHeader
 		, bmpBitmapInfo		= InfoV3 imageHeader
 		, bmpRawImageData	= imageData }
+
+
+-- Writing ----------------------------------------------------------------------------------------
+writeBMP :: FilePath -> BMP -> IO ()
+writeBMP fileName bmp
+ = do	h	<- openBinaryFile fileName WriteMode
+	hPutBMP h bmp
+	hFlush h
 
 
 -- | Write a BMP image to a file handle.
