@@ -1,4 +1,4 @@
-
+{-# OPTIONS_HADDOCK hide #-}
 module Codec.BMP.Error
 	(Error(..))
 where
@@ -10,9 +10,11 @@ data Error
 	| ErrorReadOfFileHeaderFailed
 	| ErrorReadOfImageHeaderFailed
 	| ErrorReadOfImageDataFailed
+	| ErrorReservedFieldNotZero
 	| ErrorUnhandledPlanesCount	Int
 	| ErrorUnhandledColorDepth	Int
 	| ErrorUnhandledCompressionMode	Int
+	| ErrorZeroImageSize
 	| ErrorLacksWholeNumberOfLines
 	deriving (Eq, Show)
 

@@ -2,28 +2,36 @@
 
 -- | Reading and writing uncompressed 24 bit BMP files.
 --	We only handle Windows V3 file headers, but this is the most common.
+--
+--  Typical usage is like:
+--
+--  > do handle     <- openFile fileName ReadMode
+--  >    Right bmp  <- hGetBMP handle 
+--  >    let rgba   =  unpackBMPToRGBA32 bmp
+--  >    ... 
+--  
+--
 module Codec.BMP
-	( BMP(..)
-	, hGetBMP)
+	( BMP		(..)
+	, FileHeader	(..)
+	, BitmapInfo    (..)
+	, BitmapInfoV3	(..)
+	, Error         (..)
+	, hGetBMP
+	, unpackFileHeader
+	, unpackBitmapInfoV3
+	, unpackBMPToRGBA32)
 where
-import Codec.BMP.Header
+import Codec.BMP.Types
 import Codec.BMP.Error
+import Codec.BMP.Unpack
 import System.IO
 import Data.ByteString		as BS
 
-
--- | A BMP image.
---	The image data may contain padding bytes for each line, to bring them
---	up to a multiple of 4 bytes.
-data BMP
-	= BMP
-	{ bmpFileHeader		:: FileHeader
-	, bmpBitmapInfo		:: BitmapInfoV3
-	, bmpRawImageData	:: ByteString}
-	deriving Show
 		
-
 -- | Get a BMP image from a file handle.
+--	The file is checked for problems and unsupported features when read.
+--	If there is anything wrong this gives an `Error` instead.
 hGetBMP :: Handle -> IO (Either Error BMP)
 hGetBMP h
  = do	-- load the file header.
@@ -64,13 +72,19 @@ hGetBMP3 h fileHeader imageHeader
 	 else return 
 		$ Right $ BMP 
 		{ bmpFileHeader 	= fileHeader
-		, bmpBitmapInfo		= imageHeader
+		, bmpBitmapInfo		= InfoV3 imageHeader
 		, bmpRawImageData	= imageData }
 
 
 -- | Check headers for problems and unsupported features.	 
 checkHeaders :: FileHeader -> BitmapInfoV3 ->  Maybe Error
-checkHeaders _fileHeader imageHeader
+checkHeaders fileHeader imageHeader
+	| fileHeaderReserved1 fileHeader /= 0
+	= Just 	$ ErrorReservedFieldNotZero
+
+	| fileHeaderReserved2 fileHeader /= 0
+	= Just 	$ ErrorReservedFieldNotZero
+
 	| dib3Planes imageHeader /= 1
 	= Just	$ ErrorUnhandledPlanesCount 
 		$ fromIntegral $ dib3Planes imageHeader
@@ -82,9 +96,13 @@ checkHeaders _fileHeader imageHeader
 	| dib3Compression imageHeader /= 0
 	= Just	$ ErrorUnhandledCompressionMode 
 		$ fromIntegral $ dib3Compression imageHeader
+
+	| dib3ImageSize imageHeader == 0
+	= Just $ ErrorZeroImageSize
 	
 	| dib3ImageSize imageHeader `mod` dib3Height imageHeader /= 0
 	= Just $ ErrorLacksWholeNumberOfLines
+
 
 	| otherwise
 	= Nothing

@@ -29,8 +29,9 @@ Library
 
   Exposed-modules:
         Codec.BMP
-        Codec.BMP.Header
+        Codec.BMP.Types
         Codec.BMP.Error
+        Codec.BMP.Unpack
 
   Other-modules:
         Codec.BMP.Base
