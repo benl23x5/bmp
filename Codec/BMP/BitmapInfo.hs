@@ -27,7 +27,6 @@ instance Binary BitmapInfo where
   	= put info
 
 -- | Device Independent Bitmap (DIB) header for Windows V3.
---	Numbers stated on each field are the offsets (in bytes) from the start of the header for that field.
 data BitmapInfoV3
 	= BitmapInfoV3			
 	{ -- | Size of the image header, in bytes.

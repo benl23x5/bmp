@@ -5,7 +5,8 @@
 --
 -- To write a file do something like:
 --
---  > do let bmp    =  packRGBA32ToBMP width height $ Data.ByteString.pack [some list of Word8s]
+--  > do let rgba   = Data.ByteString.pack [some list of Word8s]
+--  >    let bmp    = packRGBA32ToBMP width height rgba
 --  >    writeBMP fileName bmp
 --
 -- To read a file do something like:
@@ -25,8 +26,8 @@ module Codec.BMP
 	, writeBMP
 	, hGetBMP
 	, hPutBMP
-	, packBMPToRGBA32
 	, packRGBA32ToBMP 
+	, unpackBMPToRGBA32
 	, bmpDimensions)
 where
 import Codec.BMP.Base
@@ -95,6 +96,8 @@ hGetBMP3 h fileHeader imageHeader
 
 
 -- Writing ----------------------------------------------------------------------------------------
+
+-- | Wrapper for `hPutBMP`
 writeBMP :: FilePath -> BMP -> IO ()
 writeBMP fileName bmp
  = do	h	<- openBinaryFile fileName WriteMode
@@ -102,9 +105,9 @@ writeBMP fileName bmp
 	hFlush h
 
 
--- | Write a BMP image to a file handle.
+-- | Put a BMP image to a file handle.
 --	The size of the provided image data is checked against the given dimensions.
---	If these don't match then an error is thrown.
+--	If these don't match then `error`.
 hPutBMP :: Handle -> BMP -> IO ()
 hPutBMP h bmp
  = do	BSL.hPut h (encode $ bmpFileHeader bmp)

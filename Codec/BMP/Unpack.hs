@@ -1,7 +1,7 @@
 {-# OPTIONS_HADDOCK hide #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 module Codec.BMP.Unpack
-	(packBMPToRGBA32)
+	(unpackBMPToRGBA32)
 where	
 import Codec.BMP.Base
 import Codec.BMP.BitmapInfo
@@ -17,8 +17,8 @@ import Prelude			as P
 
 -- | Unpack a BMP image to a string of RGBA component values.
 --	The alpha component is set to 255 for every pixel.
-packBMPToRGBA32 :: BMP -> ByteString
-packBMPToRGBA32 bmp 
+unpackBMPToRGBA32 :: BMP -> ByteString
+unpackBMPToRGBA32 bmp 
  = case bmpBitmapInfo bmp of
 	InfoV3 info
 	 -> packRGB24ToRGBA32 
