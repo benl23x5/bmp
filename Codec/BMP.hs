@@ -25,7 +25,7 @@ module Codec.BMP
 	, writeBMP
 	, hGetBMP
 	, hPutBMP
-	, unpackBMPToRGBA32
+	, packBMPToRGBA32
 	, packRGBA32ToBMP 
 	, bmpDimensions)
 where

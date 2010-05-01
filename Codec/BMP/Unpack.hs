@@ -1,7 +1,7 @@
 {-# OPTIONS_HADDOCK hide #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 module Codec.BMP.Unpack
-	(unpackBMPToRGBA32)
+	(packBMPToRGBA32)
 where	
 import Codec.BMP.Base
 import Codec.BMP.BitmapInfo
@@ -17,11 +17,11 @@ import Prelude			as P
 
 -- | Unpack a BMP image to a string of RGBA component values.
 --	The alpha component is set to 255 for every pixel.
-unpackBMPToRGBA32 :: BMP -> ByteString
-unpackBMPToRGBA32 bmp 
+packBMPToRGBA32 :: BMP -> ByteString
+packBMPToRGBA32 bmp 
  = case bmpBitmapInfo bmp of
 	InfoV3 info
-	 -> unpackRGB24ToRGBA32 
+	 -> packRGB24ToRGBA32 
 			(fromIntegral $ dib3Width info) 
 			(fromIntegral $ dib3Height info)
 			(bmpRawImageData bmp)
@@ -29,13 +29,13 @@ unpackBMPToRGBA32 bmp
 
 -- | Unpack raw, uncompressed 24 bit BMP image data to a string of RGBA component values.
 --	The alpha component is set to 255 for every pixel.
-unpackRGB24ToRGBA32
+packRGB24ToRGBA32
 	:: Int 			-- Width of image.
 	-> Int			-- Height of image.
 	-> ByteString 		-- Input string.
 	-> ByteString
 		
-unpackRGB24ToRGBA32 width height str
+packRGB24ToRGBA32 width height str
  = let	bytesPerLine	= BS.length str `div` height
 	padPerLine	= bytesPerLine - width * 3
 	sizeDest	= width * height * 4
@@ -44,12 +44,12 @@ unpackRGB24ToRGBA32 width height str
  	 else unsafePerformIO
        	 	$ allocaBytes sizeDest      $ \bufDest -> 
    	   	  BS.unsafeUseAsCString str $ \bufSrc  ->
-            	   do	unpackRGB24ToRGBA32' width height padPerLine (castPtr bufSrc) (castPtr bufDest)
+            	   do	packRGB24ToRGBA32' width height padPerLine (castPtr bufSrc) (castPtr bufDest)
 			packCStringLen (bufDest, sizeDest)
 		
 -- We're doing this via Ptrs because we don't want to take the
 -- overhead of doing the bounds checks in ByteString.index.
-unpackRGB24ToRGBA32' width height pad ptrSrc ptrDest 
+packRGB24ToRGBA32' width height pad ptrSrc ptrDest 
  = go 0 0 0 0
  where	
 	go posX posY oSrc oDest
