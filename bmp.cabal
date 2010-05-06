@@ -11,10 +11,10 @@ Category:            Codec
 Homepage:            http://code.haskell.org/~benl/code/bmp-head
 Bug-reports:         bmp@ouroborus.net
 Description:
-	Read and write uncompressed 24bit BMP image files. 100% robust Haskell implementation.
+	Read and write uncompressed BMP image files. 100% robust Haskell implementation.
 
 Synopsis:
-        Read and write uncompressed 24bit BMP image files.
+        Read and write uncompressed BMP image files.
 
 Tested-with: GHC == 6.12.1
 

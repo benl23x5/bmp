@@ -1,7 +1,7 @@
 {-# OPTIONS_HADDOCK hide #-}
 module Codec.BMP.BitmapInfo
 	( BitmapInfo	(..)
-	, dimsBitmapInfo)
+	, getBitmapInfoV3)
 where
 import Codec.BMP.BitmapInfoV3
 import Codec.BMP.BitmapInfoV4
@@ -43,13 +43,14 @@ instance Binary BitmapInfo where
 	InfoV5 info	-> put info
 	
 
-dimsBitmapInfo :: BitmapInfo -> (Int, Int)
-dimsBitmapInfo bi
+-- | Get the common `BitmapInfoV3` structure from a `BitmapInfo`
+getBitmapInfoV3 :: BitmapInfo -> BitmapInfoV3
+getBitmapInfoV3 bi
  = case bi of
-	InfoV3 info	-> dimsBitmapInfoV3 info
-	InfoV4 info	-> dimsBitmapInfoV4 info
-	InfoV5 info	-> dimsBitmapInfoV5 info
-
+	InfoV3 info	-> info
+	InfoV4 info	-> dib4InfoV3 info
+	InfoV5 info	-> dib4InfoV3 $ dib5InfoV4 info
+	
 
 	
 	

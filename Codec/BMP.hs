@@ -1,7 +1,14 @@
 {-# LANGUAGE ScopedTypeVariables, PatternGuards #-}
 
--- | Reading and writing uncompressed 24 bit BMP files.
+-- | Reading and writing uncompressed BMP files.
 --
+--   Reading works for both uncompressed 24bit RGB WindowsV3 and 32bit RGBA WindowsV4 formats.
+-- 
+--   Writing is limited to the uncompressed 24bit RGB WindowsV3 format.
+--
+--   We don't support the plain OS/2 BitmapCoreHeader
+--       and BitmapCoreHeader2 image headers, but I haven't yet seen one of these in the wild.
+-- 
 -- To write a file do something like:
 --
 --  > do let rgba   = Data.ByteString.pack [some list of Word8s]
@@ -15,20 +22,18 @@
 --  >    let (width, height) = bmpDimensions bmp
 --  >    ... 
 --      
--- Note: We don't currently support the plain OS/2 BitmapCoreHeader
---       and BitmapCoreHeader2 image headers. I'm not sure how common
---       these are in the wild. 
 --
 --
 module Codec.BMP
-	( BMP		(..)
-	, FileHeader	(..)
-	, BitmapInfo    (..)
-	, BitmapInfoV3	(..)
-	, BitmapInfoV4  (..)
-	, BitmapInfoV5  (..)
-	, CIEXYZ        (..)
-	, Error         (..)
+	( BMP		  (..)
+	, FileHeader  	  (..)
+	, BitmapInfo      (..)
+	, BitmapInfoV3	  (..)
+	, BitmapInfoV4    (..)
+	, BitmapInfoV5    (..)
+	, Compression     (..)
+	, CIEXYZ          (..)
+	, Error           (..)
 	, readBMP
 	, writeBMP
 	, hGetBMP
@@ -147,9 +152,7 @@ writeBMP fileName bmp
 	hFlush h
 
 
--- | Put a BMP image to a file handle, in Windows V3 format.
---	The size of the provided image data is checked against the given dimensions.
---	If these don't match then `error`.
+-- | Put a BMP image to a file handle.
 hPutBMP :: Handle -> BMP -> IO ()
 hPutBMP h bmp
  = do	BSL.hPut h (encode $ bmpFileHeader bmp)
@@ -161,4 +164,8 @@ hPutBMP h bmp
 --	It's better to use this function than to access the headers directly.
 bmpDimensions :: BMP -> (Int, Int)
 bmpDimensions bmp	
-	= dimsBitmapInfo $ bmpBitmapInfo bmp
+ = let	info	= getBitmapInfoV3 $ bmpBitmapInfo bmp
+   in	( fromIntegral $ dib3Width info
+	, fromIntegral $ dib3Height info)
+
+

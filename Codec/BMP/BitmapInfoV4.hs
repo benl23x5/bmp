@@ -1,10 +1,10 @@
+{-# LANGUAGE PatternGuards #-}
 {-# OPTIONS_HADDOCK hide #-}
 module Codec.BMP.BitmapInfoV4
 	( BitmapInfoV4	(..)
 	, CIEXYZ        (..)
 	, sizeOfBitmapInfoV4
-	, checkBitmapInfoV4
-	, dimsBitmapInfoV4)
+	, checkBitmapInfoV4)
 where
 import Codec.BMP.Error
 import Codec.BMP.CIEXYZ
@@ -87,13 +87,44 @@ instance Binary BitmapInfoV4 where
 	putWord32le	$ dib4GammaBlue		header
 
 
--- | Check headers for problems and unsupported features.	 
-checkBitmapInfoV4 :: BitmapInfoV4 ->  Maybe Error
-checkBitmapInfoV4 header
-	= checkBitmapInfoV3 (dib4InfoV3 header)
 	
+-- | Check headers for problems and unsupported features.	 
+--	With a V4 header we support both the uncompressed 24bit RGB format,
+--	and the uncompressed 32bit RGBA format.
+--
+checkBitmapInfoV4 :: BitmapInfoV4 ->  Maybe Error
+checkBitmapInfoV4 headerV4
+		
+	| dib3Planes headerV3 /= 1
+	= Just	$ ErrorUnhandledPlanesCount 
+		$ fromIntegral $ dib3Planes headerV3
+	
+	| dib3ImageSize headerV3 == 0
+	= Just	$ ErrorZeroImageSize
+	
+	| dib3ImageSize headerV3 `mod` dib3Height headerV3 /= 0
+	= Just	$ ErrorLacksWholeNumberOfLines
 
--- | Get the image dimensions from a `BitmapInfoV5` header.
-dimsBitmapInfoV4 :: BitmapInfoV4 -> (Int, Int)
-dimsBitmapInfoV4 info
-	= dimsBitmapInfoV3 $ dib4InfoV3 info
+	-- Check for valid compression modes ----
+
+	-- uncompressed 24bit RGB
+	| dib3BitCount    headerV3 == 24 
+	, dib3Compression headerV3 == CompressionRGB
+	= Nothing
+	
+	-- uncompressed 32bit RGBA
+	| dib3BitCount    headerV3 == 32
+	, dib3Compression headerV3 == CompressionBitFields
+	, dib4AlphaMask   headerV4 == 0xff000000
+	, dib4RedMask     headerV4 == 0x00ff0000
+	, dib4GreenMask   headerV4 == 0x0000ff00
+	, dib4BlueMask    headerV4 == 0x000000ff
+	= Nothing
+	
+	-- Some unsupported compression mode ----
+	| otherwise
+	= Just $ ErrorUnhandledCompressionMode
+	
+	where	headerV3 = dib4InfoV3 headerV4
+	
+	

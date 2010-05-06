@@ -17,7 +17,7 @@ data Error
 	| ErrorUnhandledBitmapHeaderSize  	Int
 	| ErrorUnhandledPlanesCount		Int
 	| ErrorUnhandledColorDepth		Int
-	| ErrorUnhandledCompressionMode		Int
+	| ErrorUnhandledCompressionMode
 	| ErrorZeroImageSize
 	| ErrorLacksWholeNumberOfLines
 	deriving (Eq, Show)
