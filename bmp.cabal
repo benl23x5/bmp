@@ -34,7 +34,9 @@ Library
         Codec.BMP.Base
         Codec.BMP.BitmapInfo
         Codec.BMP.BitmapInfoV3
+        Codec.BMP.BitmapInfoV4
         Codec.BMP.BitmapInfoV5
+        Codec.BMP.CIEXYZ
         Codec.BMP.Error
         Codec.BMP.FileHeader
         Codec.BMP.Pack

@@ -1,7 +1,6 @@
 {-# LANGUAGE ScopedTypeVariables, PatternGuards #-}
 
 -- | Reading and writing uncompressed 24 bit BMP files.
---	We only handle Windows V3+V5 file headers, but these are the most common.
 --
 -- To write a file do something like:
 --
@@ -15,12 +14,18 @@
 --  >    let rgba   =  unpackBMPToRGBA32 bmp
 --  >    let (width, height) = bmpDimensions bmp
 --  >    ... 
---  
+--      
+-- Note: We don't currently support the plain OS/2 BitmapCoreHeader
+--       and BitmapCoreHeader2 image headers. I'm not sure how common
+--       these are in the wild. 
+--
+--
 module Codec.BMP
 	( BMP		(..)
 	, FileHeader	(..)
 	, BitmapInfo    (..)
 	, BitmapInfoV3	(..)
+	, BitmapInfoV4  (..)
 	, BitmapInfoV5  (..)
 	, CIEXYZ        (..)
 	, Error         (..)
@@ -39,6 +44,7 @@ import Codec.BMP.Pack
 import Codec.BMP.FileHeader
 import Codec.BMP.BitmapInfo
 import Codec.BMP.BitmapInfoV3
+import Codec.BMP.BitmapInfoV4
 import Codec.BMP.BitmapInfoV5
 import System.IO
 import Data.ByteString		as BS
@@ -58,8 +64,7 @@ readBMP fileName
 --	If there is anything wrong this gives an `Error` instead.
 hGetBMP :: Handle -> IO (Either Error BMP)
 hGetBMP h
- = do	System.IO.putStr ("getting file\n");
-	-- load the file header.
+ = do	-- load the file header.
 	buf	<- BSL.hGet h sizeOfFileHeader
 	if (fromIntegral $ BSL.length buf) /= sizeOfFileHeader
 	 then 	return $ Left ErrorReadOfFileHeaderFailed
@@ -96,13 +101,25 @@ hGetBMP3 h fileHeader sizeHeader bufHeader
 		 Just err	-> return $ Left err
 		 Nothing	-> hGetBMP4 h fileHeader (InfoV3 info) 
 					(fromIntegral $ dib3ImageSize info)
+
+	| sizeHeader == 108
+	= do	let info	= decode bufHeader
+		case checkBitmapInfoV4 info of
+		 Just err	-> return $ Left err
+		 Nothing	-> hGetBMP4 h fileHeader (InfoV4 info) 
+					(fromIntegral 
+						$ dib3ImageSize 
+						$ dib4InfoV3 info)
 		
 	| sizeHeader == 124
 	= do	let info	= decode bufHeader
 		case checkBitmapInfoV5 info of
 		 Just err	-> return $ Left err
 		 Nothing	-> hGetBMP4 h fileHeader (InfoV5 info) 
-					(fromIntegral $ dib5ImageSize info)
+					(fromIntegral
+					 	$ dib3ImageSize 
+						$ dib4InfoV3
+						$ dib5InfoV4 info)
 		
 	| otherwise
  	= return $ Left $ ErrorUnhandledBitmapHeaderSize (fromIntegral sizeHeader)
@@ -143,12 +160,5 @@ hPutBMP h bmp
 -- | Get the width and height of an image.
 --	It's better to use this function than to access the headers directly.
 bmpDimensions :: BMP -> (Int, Int)
-bmpDimensions bmp
- = case bmpBitmapInfo bmp of
-	InfoV3 info
-	 -> ( fromIntegral $ dib3Width info
-	    , fromIntegral $ dib3Height info)
-
-	InfoV5 info
-	 -> ( fromIntegral $ dib5Width info
-	    , fromIntegral $ dib5Height info)
+bmpDimensions bmp	
+	= dimsBitmapInfo $ bmpBitmapInfo bmp
