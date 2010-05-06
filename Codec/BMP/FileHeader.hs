@@ -5,7 +5,7 @@ module Codec.BMP.FileHeader
 	, sizeOfFileHeader
 	, checkFileHeader)
 where
-import Codec.BMP.BitmapInfo
+import Codec.BMP.BitmapInfoV3
 import Codec.BMP.Error
 import Data.Binary
 import Data.Binary.Get	

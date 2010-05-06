@@ -5,6 +5,8 @@ module Codec.BMP.Unpack
 where	
 import Codec.BMP.Base
 import Codec.BMP.BitmapInfo
+import Codec.BMP.BitmapInfoV3
+import Codec.BMP.BitmapInfoV5
 import Foreign.Ptr
 import Foreign.Marshal.Alloc
 import Foreign.Storable
@@ -26,6 +28,11 @@ unpackBMPToRGBA32 bmp
 			(fromIntegral $ dib3Height info)
 			(bmpRawImageData bmp)
 
+	InfoV5 info
+	 -> packRGB24ToRGBA32 
+			(fromIntegral $ dib5Width info) 
+			(fromIntegral $ dib5Height info)
+			(bmpRawImageData bmp)
 
 -- | Unpack raw, uncompressed 24 bit BMP image data to a string of RGBA component values.
 --	The alpha component is set to 255 for every pixel.

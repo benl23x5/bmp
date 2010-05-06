@@ -5,6 +5,7 @@ module Codec.BMP.Pack
 where
 import Codec.BMP.Base
 import Codec.BMP.BitmapInfo
+import Codec.BMP.BitmapInfoV3
 import Codec.BMP.FileHeader
 import Foreign.Ptr
 import Foreign.Marshal.Alloc

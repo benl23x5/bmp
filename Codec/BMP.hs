@@ -1,7 +1,7 @@
 {-# LANGUAGE ScopedTypeVariables, PatternGuards #-}
 
 -- | Reading and writing uncompressed 24 bit BMP files.
---	We only handle Windows V3 file headers, but this is the most common.
+--	We only handle Windows V3+V5 file headers, but these are the most common.
 --
 -- To write a file do something like:
 --
@@ -21,6 +21,8 @@ module Codec.BMP
 	, FileHeader	(..)
 	, BitmapInfo    (..)
 	, BitmapInfoV3	(..)
+	, BitmapInfoV5  (..)
+	, CIEXYZ        (..)
 	, Error         (..)
 	, readBMP
 	, writeBMP
@@ -36,11 +38,13 @@ import Codec.BMP.Unpack
 import Codec.BMP.Pack
 import Codec.BMP.FileHeader
 import Codec.BMP.BitmapInfo
-import Data.Binary
-import Data.Maybe
+import Codec.BMP.BitmapInfoV3
+import Codec.BMP.BitmapInfoV5
 import System.IO
 import Data.ByteString		as BS
 import Data.ByteString.Lazy	as BSL
+import Data.Binary
+import Data.Binary.Get
 
 -- Reading ----------------------------------------------------------------------------------------
 -- | Wrapper for `hGetBMP`
@@ -54,7 +58,8 @@ readBMP fileName
 --	If there is anything wrong this gives an `Error` instead.
 hGetBMP :: Handle -> IO (Either Error BMP)
 hGetBMP h
- = do	-- load the file header.
+ = do	System.IO.putStr ("getting file\n");
+	-- load the file header.
 	buf	<- BSL.hGet h sizeOfFileHeader
 	if (fromIntegral $ BSL.length buf) /= sizeOfFileHeader
 	 then 	return $ Left ErrorReadOfFileHeaderFailed
@@ -69,34 +74,54 @@ hGetBMP2 h fileHeader
  = return $ Left $ ErrorBadMagic (fileHeaderType fileHeader)
 	
  | otherwise
- = do	-- load the image header.
-	buf	<- BSL.hGet h sizeOfBitmapInfoV3
-	if (fromIntegral $ BSL.length buf) /= sizeOfBitmapInfoV3
+ = do	-- Next comes the image header. 
+	-- The first word tells us which header format it is.
+	bufSize		<- BSL.hGet h 4
+	let sizeHeader	= runGet getWord32le bufSize
+	
+	-- Load the rest of the image header
+	let sizeRest	= fromIntegral sizeHeader - 4
+	bufRest	<- BSL.hGet h sizeRest
+	if (fromIntegral $ BSL.length bufRest) /= sizeRest
 	 then 	return $ Left ErrorReadOfImageHeaderFailed
-	 else 	hGetBMP3 h fileHeader (decode buf)
+	 else do
+		let bufHeader 	= BSL.append bufSize bufRest
+		hGetBMP3 h fileHeader sizeHeader bufHeader
+		
 			
-hGetBMP3 h fileHeader imageHeader
- | (err : _)	<- catMaybes
-			[ checkFileHeader   fileHeader
-			, checkBitmapInfoV3 imageHeader]
- = return $ Left err
+hGetBMP3 h fileHeader sizeHeader bufHeader
+	| sizeHeader == 40 
+	= do	let info	= decode bufHeader
+		case checkBitmapInfoV3 info of
+		 Just err	-> return $ Left err
+		 Nothing	-> hGetBMP4 h fileHeader (InfoV3 info) 
+					(fromIntegral $ dib3ImageSize info)
+		
+	| sizeHeader == 124
+	= do	let info	= decode bufHeader
+		case checkBitmapInfoV5 info of
+		 Just err	-> return $ Left err
+		 Nothing	-> hGetBMP4 h fileHeader (InfoV5 info) 
+					(fromIntegral $ dib5ImageSize info)
+		
+	| otherwise
+ 	= return $ Left $ ErrorUnhandledBitmapHeaderSize (fromIntegral sizeHeader)
 
- | otherwise
+
+hGetBMP4 h fileHeader imageHeader sizeImage
  = do	-- load the image data.
-	let len		= fromIntegral $ dib3ImageSize imageHeader
-	imageData	<- BS.hGet h len
+	imageData	<- BS.hGet h sizeImage
 				
-	if (fromIntegral $ BS.length imageData) /= len
+	if (fromIntegral $ BS.length imageData) /= sizeImage
 	 then return $ Left ErrorReadOfImageDataFailed
 	 else return 
 		$ Right $ BMP 
 		{ bmpFileHeader 	= fileHeader
-		, bmpBitmapInfo		= InfoV3 imageHeader
+		, bmpBitmapInfo		= imageHeader
 		, bmpRawImageData	= imageData }
 
 
 -- Writing ----------------------------------------------------------------------------------------
-
 -- | Wrapper for `hPutBMP`
 writeBMP :: FilePath -> BMP -> IO ()
 writeBMP fileName bmp
@@ -105,7 +130,7 @@ writeBMP fileName bmp
 	hFlush h
 
 
--- | Put a BMP image to a file handle.
+-- | Put a BMP image to a file handle, in Windows V3 format.
 --	The size of the provided image data is checked against the given dimensions.
 --	If these don't match then `error`.
 hPutBMP :: Handle -> BMP -> IO ()
@@ -124,3 +149,6 @@ bmpDimensions bmp
 	 -> ( fromIntegral $ dib3Width info
 	    , fromIntegral $ dib3Height info)
 
+	InfoV5 info
+	 -> ( fromIntegral $ dib5Width info
+	    , fromIntegral $ dib5Height info)

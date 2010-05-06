@@ -1,5 +1,5 @@
 Name:                bmp
-Version:             1.0.0.1
+Version:             1.1.0.0
 License:             MIT
 License-file:        LICENSE
 Author:              Ben Lippmeier
@@ -33,6 +33,8 @@ Library
   Other-modules:
         Codec.BMP.Base
         Codec.BMP.BitmapInfo
+        Codec.BMP.BitmapInfoV3
+        Codec.BMP.BitmapInfoV5
         Codec.BMP.Error
         Codec.BMP.FileHeader
         Codec.BMP.Pack
