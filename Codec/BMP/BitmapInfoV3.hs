@@ -14,37 +14,37 @@ import Data.Binary.Put
 -- | Device Independent Bitmap (DIB) header for Windows V3.
 data BitmapInfoV3
 	= BitmapInfoV3			
-	{ -- | Size of the image header, in bytes.
+	{ -- | (+0) Size of the image header, in bytes.
 	  dib3Size		:: Word32
 
-	  -- | Width of the image, in pixels.
+	  -- | (+4) Width of the image, in pixels.
 	, dib3Width		:: Word32
 	
-	  -- | Height of the image, in pixels.
+	  -- | (+8) Height of the image, in pixels.
 	, dib3Height		:: Word32
 	
-	  -- | Number of color planes.
+	  -- | (+12) Number of color planes.
 	, dib3Planes		:: Word16
 
-	  -- | Number of bits per pixel.
+	  -- | (+14) Number of bits per pixel.
 	, dib3BitCount		:: Word16
 
-	  -- | Image compression mode.
+	  -- | (+16) Image compression mode.
 	, dib3Compression	:: Compression
 
-	  -- | Size of raw image data.
+	  -- | (+20) Size of raw image data.
 	, dib3ImageSize		:: Word32
 
-	  -- | Prefered resolution in pixels per meter, along the X axis.
+	  -- | (+24) Prefered resolution in pixels per meter, along the X axis.
 	, dib3PelsPerMeterX	:: Word32
 
-	  -- | Prefered resolution in pixels per meter, along the Y axis.
+	  -- | (+28) Prefered resolution in pixels per meter, along the Y axis.
 	, dib3PelsPerMeterY	:: Word32
 
-	  -- | Number of color entries that are used.
+	  -- | (+32) Number of color entries that are used.
 	, dib3ColorsUsed	:: Word32
 
-	  -- | Number of significant colors.
+	  -- | (+36) Number of significant colors.
 	, dib3ColorsImportant	:: Word32
 	}
 	deriving (Show)

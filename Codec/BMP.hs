@@ -62,21 +62,21 @@ import Data.Binary.Get
 readBMP :: FilePath -> IO (Either Error BMP)
 readBMP fileName
  = do	h	<- openBinaryFile fileName ReadMode
-	hGetBMP h
+	hGetBMP fileName h
 	
 -- | Get a BMP image from a file handle.
 --	The file is checked for problems and unsupported features when read.
 --	If there is anything wrong this gives an `Error` instead.
-hGetBMP :: Handle -> IO (Either Error BMP)
-hGetBMP h
+hGetBMP :: FilePath -> Handle -> IO (Either Error BMP)
+hGetBMP fileName h
  = do	-- load the file header.
 	buf	<- BSL.hGet h sizeOfFileHeader
 	if (fromIntegral $ BSL.length buf) /= sizeOfFileHeader
 	 then 	return $ Left ErrorReadOfFileHeaderFailed
-	 else	hGetBMP2 h (decode buf)
+	 else	hGetBMP2 fileName h (decode buf)
 	
 	
-hGetBMP2 h fileHeader
+hGetBMP2 fileName h fileHeader
  -- Check the magic before doing anything else.
  --	If the specified file is not a BMP file then we'd prefer to get 
  --	this error than a `ReadOfImageHeaderFailed`.
@@ -96,22 +96,22 @@ hGetBMP2 h fileHeader
 	 then 	return $ Left ErrorReadOfImageHeaderFailed
 	 else do
 		let bufHeader 	= BSL.append bufSize bufRest
-		hGetBMP3 h fileHeader sizeHeader bufHeader
+		hGetBMP3 fileName h fileHeader sizeHeader bufHeader
 		
 			
-hGetBMP3 h fileHeader sizeHeader bufHeader
+hGetBMP3 fileName h fileHeader sizeHeader bufHeader
 	| sizeHeader == 40 
 	= do	let info	= decode bufHeader
 		case checkBitmapInfoV3 info of
 		 Just err	-> return $ Left err
-		 Nothing	-> hGetBMP4 h fileHeader (InfoV3 info) 
+		 Nothing	-> hGetBMP4 fileName h fileHeader (InfoV3 info) 
 					(fromIntegral $ dib3ImageSize info)
 
 	| sizeHeader == 108
 	= do	let info	= decode bufHeader
 		case checkBitmapInfoV4 info of
 		 Just err	-> return $ Left err
-		 Nothing	-> hGetBMP4 h fileHeader (InfoV4 info) 
+		 Nothing	-> hGetBMP4 fileName h fileHeader (InfoV4 info) 
 					(fromIntegral 
 						$ dib3ImageSize 
 						$ dib4InfoV3 info)
@@ -120,7 +120,7 @@ hGetBMP3 h fileHeader sizeHeader bufHeader
 	= do	let info	= decode bufHeader
 		case checkBitmapInfoV5 info of
 		 Just err	-> return $ Left err
-		 Nothing	-> hGetBMP4 h fileHeader (InfoV5 info) 
+		 Nothing	-> hGetBMP4 fileName h fileHeader (InfoV5 info) 
 					(fromIntegral
 					 	$ dib3ImageSize 
 						$ dib4InfoV3
@@ -130,9 +130,22 @@ hGetBMP3 h fileHeader sizeHeader bufHeader
  	= return $ Left $ ErrorUnhandledBitmapHeaderSize (fromIntegral sizeHeader)
 
 
-hGetBMP4 h fileHeader imageHeader sizeImage
- = do	-- load the image data.
-	imageData	<- BS.hGet h sizeImage
+hGetBMP4 fileName h fileHeader imageHeader sizeImage
+ = do	System.IO.putStr 
+		$  "file header  = " ++ show fileHeader  ++ "\n"
+		++ "image header = " ++ show imageHeader ++ "\n"
+		++ "size image   = " ++ show sizeImage   ++ "\n"
+	
+	pos	<- hTell h
+
+	hClose h
+	h'	<- openBinaryFile fileName ReadMode
+	hSeek h' AbsoluteSeek pos   
+	
+	-- load the image data.
+	imageData	<- BS.hGet h' sizeImage
+	
+	System.IO.putStr $ "read length      = " ++ show (BS.length imageData) ++ "\n"
 				
 	if (fromIntegral $ BS.length imageData) /= sizeImage
 	 then return $ Left ErrorReadOfImageDataFailed

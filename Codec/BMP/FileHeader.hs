@@ -15,19 +15,19 @@ import Data.Binary.Put
 -- | BMP file header.
 data FileHeader
 	= FileHeader			
-	{ -- | Magic numbers 0x42 0x4d
+	{ -- | (+0) Magic numbers 0x42 0x4d
 	  fileHeaderType	:: Word16
 	
-	  -- | Size of the file, in bytes.
+	  -- | (+2) Size of the file, in bytes.
 	, fileHeaderFileSize	:: Word32
 
-	  -- | Reserved, must be zero.
+	  -- | (+6) Reserved, must be zero.
 	, fileHeaderReserved1	:: Word16
 
-	  -- | Reserved, must be zero.
+	  -- | (+8) Reserved, must be zero.
 	, fileHeaderReserved2	:: Word16
 
-	  -- | Offset in bytes to the start of the pixel data.
+	  -- | (+10) Offset in bytes to the start of the pixel data.
 	, fileHeaderOffset	:: Word32
 	}
 	deriving (Show)
