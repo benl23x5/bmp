@@ -131,12 +131,7 @@ hGetBMP3 fileName h fileHeader sizeHeader bufHeader
 
 
 hGetBMP4 fileName h fileHeader imageHeader sizeImage
- = do	System.IO.putStr 
-		$  "file header  = " ++ show fileHeader  ++ "\n"
-		++ "image header = " ++ show imageHeader ++ "\n"
-		++ "size image   = " ++ show sizeImage   ++ "\n"
-	
-	pos	<- hTell h
+ = do	pos	<- hTell h
 
 	hClose h
 	h'	<- openBinaryFile fileName ReadMode
@@ -144,9 +139,7 @@ hGetBMP4 fileName h fileHeader imageHeader sizeImage
 	
 	-- load the image data.
 	imageData	<- BS.hGet h' sizeImage
-	
-	System.IO.putStr $ "read length      = " ++ show (BS.length imageData) ++ "\n"
-				
+					
 	if (fromIntegral $ BS.length imageData) /= sizeImage
 	 then return $ Left ErrorReadOfImageDataFailed
 	 else return 
