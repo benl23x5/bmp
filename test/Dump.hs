@@ -7,7 +7,7 @@ main
  = do	[fileName]	<- getArgs
 	handle		<- openFile fileName ReadMode
 
-	mBMP		<- hGetBMP fileName handle
+	mBMP		<- hGetBMP handle
 	case mBMP of
 	 Left err	-> print err
 	 Right bmp	-> print bmp
