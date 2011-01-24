@@ -152,6 +152,7 @@ writeBMP fileName bmp
  = do	h	<- openBinaryFile fileName WriteMode
 	hPutBMP h bmp
 	hFlush h
+	hClose h
 
 
 -- | Put a BMP image to a file handle.
