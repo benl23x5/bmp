@@ -92,17 +92,18 @@ instance Binary BitmapInfoV4 where
 --	With a V4 header we support both the uncompressed 24bit RGB format,
 --	and the uncompressed 32bit RGBA format.
 --
-checkBitmapInfoV4 :: BitmapInfoV4 ->  Maybe Error
-checkBitmapInfoV4 headerV4
+checkBitmapInfoV4 :: BitmapInfoV4 -> Word32 -> Maybe Error
+checkBitmapInfoV4 headerV4 expectedImageSize
 		
 	| dib3Planes headerV3 /= 1
 	= Just	$ ErrorUnhandledPlanesCount 
 		$ fromIntegral $ dib3Planes headerV3
-	
-	| dib3ImageSize headerV3 == 0
-	= Just	$ ErrorZeroImageSize
-	
-	| dib3ImageSize headerV3 `mod` dib3Height headerV3 /= 0
+
+	| dib3ImageSize headerV3 /= 0
+	, dib3ImageSize headerV3 /= expectedImageSize
+	= Just	$ ErrorUnexpectedImageSize
+		
+	| expectedImageSize `mod` dib3Height headerV3 /= 0
 	= Just	$ ErrorLacksWholeNumberOfLines
 
 	-- Check for valid compression modes ----

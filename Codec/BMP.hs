@@ -22,7 +22,10 @@
 --  >    let (width, height) = bmpDimensions bmp
 --  >    ... 
 --      
+-- Release Notes:
 --
+--  >  * bmp 1.1.2   
+--  >    Handle files with the image size field set to zero.
 --
 module Codec.BMP
 	( BMP		  (..)
@@ -96,38 +99,50 @@ hGetBMP2 buf fileHeader
 	-- split off the image header
 	let (bufImageHeader, bufRest)
 		= BSL.splitAt (fromIntegral sizeHeader) buf
+        
+        -- How long we expect the image data to be.
+        -- For uncompressed data without a colour table, all of the file that
+        -- isn't the header should be image data. The length of the image data
+        -- is sometimes recorded in the imageSize field of the header, but
+        -- sometimes that field is zero, so we have to compute it like so..
+        let expectedImageSize
+                = (fromIntegral $ BSL.length bufRest) :: Word32
 
 	if (fromIntegral $ BSL.length bufImageHeader) /= sizeHeader
 	 then 	return $ Left ErrorReadOfImageHeaderFailed
-	 else 	hGetBMP3 fileHeader bufImageHeader bufRest
+	 else 	hGetBMP3 fileHeader bufImageHeader bufRest expectedImageSize
 
 			
-hGetBMP3 fileHeader bufImageHeader bufRest
+hGetBMP3 fileHeader bufImageHeader bufRest expectedImageSize
 	| BSL.length bufImageHeader == 40 
 	= do	let info	= decode bufImageHeader
-		case checkBitmapInfoV3 info of
+		case checkBitmapInfoV3 info expectedImageSize of
 		 Just err	-> return $ Left err
 		 Nothing	-> hGetBMP4 fileHeader (InfoV3 info) bufRest
-					(fromIntegral $ dib3ImageSize info)
+		                        (fromIntegral expectedImageSize)
+{-					(fromIntegral $ dib3ImageSize info) -}
 
 	| BSL.length bufImageHeader == 108
 	= do	let info	= decode bufImageHeader
-		case checkBitmapInfoV4 info of
+		case checkBitmapInfoV4 info expectedImageSize of
 		 Just err	-> return $ Left err
 		 Nothing	-> hGetBMP4 fileHeader (InfoV4 info) bufRest
-					(fromIntegral 
+                                        (fromIntegral expectedImageSize)
+{-					(fromIntegral 
 						$ dib3ImageSize 
 						$ dib4InfoV3 info)
-		
+-}		
 	| BSL.length bufImageHeader == 124
 	= do	let info	= decode bufImageHeader
-		case checkBitmapInfoV5 info of
+		case checkBitmapInfoV5 info expectedImageSize of
 		 Just err	-> return $ Left err
 		 Nothing	-> hGetBMP4 fileHeader (InfoV5 info) bufRest
-					(fromIntegral
+                                        (fromIntegral expectedImageSize)
+{-					(fromIntegral
 					 	$ dib3ImageSize 
 						$ dib4InfoV3
 						$ dib5InfoV4 info)
+-}
 		
 	| otherwise
  	= return 

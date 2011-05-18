@@ -33,6 +33,10 @@ data BitmapInfoV3
 	, dib3Compression	:: Compression
 
 	  -- | (+20) Size of raw image data.
+	  --   Some encoders set this to zero, so we need to calculate it based on the
+	  --   overall file size.
+	  -- 
+	  --   If it is non-zero then we check it matches the file size - header size.
 	, dib3ImageSize		:: Word32
 
 	  -- | (+24) Prefered resolution in pixels per meter, along the X axis.
@@ -131,17 +135,18 @@ instance Binary Compression where
 	
 -- | Check headers for problems and unsupported features.	 
 --	With a V3 header we only support the uncompressed 24bit RGB format.
-checkBitmapInfoV3 :: BitmapInfoV3 ->  Maybe Error
-checkBitmapInfoV3 header
+checkBitmapInfoV3 :: BitmapInfoV3 -> Word32 -> Maybe Error
+checkBitmapInfoV3 header expectedImageSize
 		
 	| dib3Planes header /= 1
 	= Just	$ ErrorUnhandledPlanesCount 
 		$ fromIntegral $ dib3Planes header
 	
-	| dib3ImageSize header == 0
-	= Just	$ ErrorZeroImageSize
+	| dib3ImageSize header /= 0
+	, dib3ImageSize header /= expectedImageSize
+	= Just	$ ErrorUnexpectedImageSize
 	
-	| dib3ImageSize header `mod` dib3Height header /= 0
+	| expectedImageSize `mod` dib3Height header /= 0
 	= Just	$ ErrorLacksWholeNumberOfLines
 
 	| dib3BitCount header /= 24
