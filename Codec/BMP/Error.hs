@@ -28,32 +28,33 @@ data Error
 
         -- | The offset to the image data from the file header doesn't
         --   point anywhere sensible.
-	| ErrorDodgyFileHeaderFieldOffset      Word32
-
-        -- | The file size field doesn't match the actual size of the file.
-	| ErroFileHeaderFileSizeMismatch       Word32 Word32
+	| ErrorDodgyFileHeaderFieldOffset
+        { errorFileHeaderOffset :: Word32 }
 
         -- | We handle V3 V4 and V5 image headers, but the size of 
         --   the header indicates it has some other format.
-	| ErrorUnhandledBitmapHeaderSize       Word32
+	| ErrorUnhandledBitmapHeaderSize
+        { errorBitmapHeaderSize :: Word32 }
 
         -- | We only handle single color planes.
-	| ErrorUnhandledPlanesCount            Word16
+	| ErrorUnhandledPlanesCount
+        { errorPlanesCount      :: Word16 }
 
         -- | We only handle 24 and 32 bit images.
-	| ErrorUnhandledColorDepth             Word16
+	| ErrorUnhandledColorDepth
+        { errorColorDepth       :: Word16 }
 
         -- | We only handle uncompressed images.
-	| ErrorUnhandledCompressionMode        Compression
+	| ErrorUnhandledCompressionMode
+        { errorCompression      :: Compression}
 
         -- | Mismatch between the image size stated in the header
         --   and that which is calculuated from the other fields.
         | ErrorImagePhysicalSizeMismatch 
-        { imageSizeHeader       :: Word32
-        , imageSizeBuffer       :: Word32 }
+        { errorImageSizeFromHeader  :: Word32
+        , errorImageSizeOfBuffer    :: Word32 }
 
-        | ErrorUnexpectedImageSize
-
-	| ErrorLacksWholeNumberOfLines
+        -- | Something went wrong in the library.
+        | ErrorInternalErrorPleaseReport
 	deriving (Eq, Show)
 

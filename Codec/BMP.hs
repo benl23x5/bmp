@@ -2,7 +2,8 @@
 
 -- | Reading and writing uncompressed BMP files.
 --
---   Reading works for both uncompressed 24bit RGB WindowsV3 and 32bit RGBA WindowsV4 formats.
+--   Reading works for both uncompressed 24bit RGB and 32bit RGBA
+--   WindowsV3, WindowsV4 and WindowsV5 formats.
 -- 
 --   Writing is limited to the uncompressed 24bit RGB WindowsV3 format.
 --
@@ -118,7 +119,7 @@ hGetBMP3 fileHeader bufImageHeader bufRest physicalBufferSize
                   | Just imageSize      <- imageSizeFromBitmapInfoV3 info
                   -> hGetBMP4 fileHeader (InfoV3 info) bufRest imageSize
                   | otherwise
-                  -> return $ Left ErrorUnexpectedImageSize
+                  -> return $ Left $ ErrorInternalErrorPleaseReport
 
 	| BSL.length bufImageHeader == 108
 	= do	let info	= decode bufImageHeader
@@ -128,7 +129,7 @@ hGetBMP3 fileHeader bufImageHeader bufRest physicalBufferSize
                   | Just imageSize      <- imageSizeFromBitmapInfoV4 info
                   -> hGetBMP4 fileHeader (InfoV4 info) bufRest imageSize
                   | otherwise
-                  -> return $ Left ErrorUnexpectedImageSize
+                  -> return $ Left $ ErrorInternalErrorPleaseReport
 		
 	| BSL.length bufImageHeader == 124
 	= do	let info	= decode bufImageHeader
@@ -138,7 +139,7 @@ hGetBMP3 fileHeader bufImageHeader bufRest physicalBufferSize
                   | Just imageSize      <- imageSizeFromBitmapInfoV5 info
                   -> hGetBMP4 fileHeader (InfoV5 info) bufRest imageSize
                   | otherwise
-                  -> return $ Left ErrorUnexpectedImageSize
+                  -> return $ Left $ ErrorInternalErrorPleaseReport
 		
 	| otherwise
  	= return $ Left 
