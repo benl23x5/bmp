@@ -10,7 +10,8 @@ data Error
 
         -- | Magic number was not at the start of the file, 
         --   so this probably isn't a BMP file.
-        = ErrorBadMagic                         Word16
+        = ErrorBadMagic
+        { errorMagic            :: Word16 }
 
         -- | File is too short to contain a file header.
 	| ErrorFileHeaderTruncated

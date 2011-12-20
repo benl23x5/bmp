@@ -10,7 +10,8 @@ import Codec.BMP.Error
 import Data.Binary
 import Data.Binary.Get	
 import Data.Binary.Put
-	
+
+
 -- File Headers -----------------------------------------------------------------------------------
 -- | BMP file header.
 data FileHeader

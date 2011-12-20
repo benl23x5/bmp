@@ -128,5 +128,3 @@ packRGB32ToRGBA32' width height ptrSrc ptrDest
 		
 		go (posX + 1) posY (oSrc + 4) (oDest + 4)
 
-
-		
