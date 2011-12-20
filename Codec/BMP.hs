@@ -24,9 +24,13 @@
 --  >    ... 
 --      
 -- Release Notes:
+
+--  >  * bmp 1.2.0
+--       Accept files with zero padding on the end.
+--       Accept RGBA files with V3 headers.
 --
 --  >  * bmp 1.1.2   
---  >    Handle files with the image size field set to zero.
+--  >    Accept files with the image size field set to zero.
 --
 module Codec.BMP
 	( BMP		  (..)
