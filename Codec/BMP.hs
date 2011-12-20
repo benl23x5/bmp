@@ -24,10 +24,10 @@
 --  >    ... 
 --      
 -- Release Notes:
-
+--
 --  >  * bmp 1.2.0
---       Accept files with zero padding on the end.
---       Accept RGBA files with V3 headers.
+--  >    Accept files with zero padding on the end of the file.
+--  >    Accept RGBA files with V3 headers.
 --
 --  >  * bmp 1.1.2   
 --  >    Accept files with the image size field set to zero.
