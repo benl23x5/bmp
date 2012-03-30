@@ -159,7 +159,7 @@ hGetBMP4 fileHeader imageHeader bufImage (sizeImage :: Int)
 		$ Right $ BMP 
 		{ bmpFileHeader 	= fileHeader
 		, bmpBitmapInfo		= imageHeader
-		, bmpRawImageData	= BS.pack $ BSL.unpack bufImage }
+		, bmpRawImageData	= BS.concat $ BSL.toChunks bufImage }
 
 
 -- Writing ----------------------------------------------------------------------------------------
