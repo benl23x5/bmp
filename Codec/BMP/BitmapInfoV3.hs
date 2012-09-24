@@ -12,7 +12,7 @@ import Codec.BMP.Compression
 import Data.Binary
 import Data.Binary.Get	
 import Data.Binary.Put
-
+import Debug.Trace
 
 -- | Device Independent Bitmap (DIB) header for Windows V3.
 data BitmapInfoV3
@@ -137,7 +137,8 @@ checkBitmapInfoV3 header physicalBufferSize
                         (fromIntegral physicalBufferSize)
 
         -- We only handle uncompresssed images.
-        | dib3Compression header /= CompressionRGB
+        |   dib3Compression header /= CompressionRGB
+         && dib3Compression header /= CompressionBitFields
         = Just  $ ErrorUnhandledCompressionMode (dib3Compression header)
 
 	| otherwise
@@ -156,12 +157,14 @@ imageSizeFromBitmapInfoV3 :: BitmapInfoV3 -> Maybe Int
 imageSizeFromBitmapInfoV3 header
         | dib3BitCount    header == 32
         , dib3Planes      header == 1
-        , dib3Compression header == CompressionRGB
+        ,   dib3Compression header == CompressionRGB
+         || dib3Compression header == CompressionBitFields
         = Just $ fromIntegral (dib3Width header * dib3Height header * 4)
 
         | dib3BitCount    header == 24
         , dib3Planes      header == 1
-        , dib3Compression header == CompressionRGB
+        ,   dib3Compression header == CompressionRGB
+         || dib3Compression header == CompressionBitFields
         = let   imageBytesPerLine = dib3Width header * 3
                 tailBytesPerLine  = imageBytesPerLine `mod` 4
                 padBytesPerLine   = if tailBytesPerLine > 0
@@ -171,5 +174,5 @@ imageSizeFromBitmapInfoV3 header
                      $ dib3Height header * imageBytesPerLine + padBytesPerLine
 
         | otherwise
-        = Nothing
+        = trace (show header) $ Nothing
 
