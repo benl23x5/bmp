@@ -106,10 +106,12 @@ checkBitmapInfoV4 headerV4 physicalBufferSize
         = Just  $ ErrorUnhandledColorDepth $ dib3BitCount headerV3
 
         -- If the image size field in the header is non-zero, 
-        -- then it must be the same as physical size of the image buffer.
+        -- then it must be less than the physical size of the image buffer.
+        --  The buffer may be larger than the size of the image stated
+        --  in the header, because some encoders add padding to the end.
         | headerImageSize               <- dib3ImageSize headerV3
         , headerImageSize /= 0
-        , fromIntegral headerImageSize /= physicalBufferSize
+        , physicalBufferSize             < headerImageSize
         = Just  $ ErrorImagePhysicalSizeMismatch
                         headerImageSize physicalBufferSize
 
