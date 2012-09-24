@@ -8,9 +8,9 @@ import Data.ByteString
 
 
 -- | A BMP image.
---	For an uncompressed image, the image data contains triples of BGR component values.
---	Each line may also have zero pad values on the end, to bring them up to a multiple
---	of 4 bytes in length.
+--	For an uncompressed image, the image data contains triples of BGR
+--      component values. Each line may also have zero pad values on the end,
+--      to bring them up to a multiple of 4 bytes in length.
 data BMP
 	= BMP
 	{ bmpFileHeader		:: FileHeader

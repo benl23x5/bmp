@@ -30,9 +30,9 @@ data BitmapInfoV4
 	-- | The color space used by the image.
 	, dib4ColorSpaceType	:: Word32
 
-	-- | Specifies the XYZ coords of the three colors that correspond to the RGB endpoints
-	--   for the logical color space associated with the bitmap. 
-	--   Only used when ColorSpaceType specifies a calibrated image.
+	-- | Specifies the XYZ coords of the three colors that correspond to
+        --   the RGB endpoints for the logical color space associated with the
+        --   bitmap. Only used when ColorSpaceType specifies a calibrated image.
 	, dib4Endpoints		:: (CIEXYZ, CIEXYZ, CIEXYZ)
 
 	-- | Toned response curves for each component. 
@@ -182,7 +182,8 @@ imageSizeFromBitmapInfoV4 headerV4
                 padBytesPerLine   = if tailBytesPerLine > 0
                                         then 4 - tailBytesPerLine
                                         else 0
-          in    Just $ fromIntegral (dib3Height headerV3 * imageBytesPerLine + padBytesPerLine)
+          in    Just $ fromIntegral 
+                     $ dib3Height headerV3 * imageBytesPerLine + padBytesPerLine
 
         | otherwise
         = Nothing

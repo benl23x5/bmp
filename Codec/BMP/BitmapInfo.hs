@@ -9,7 +9,7 @@ import Codec.BMP.BitmapInfoV5
 import Data.Binary
 import Data.Binary.Get
 
--- Image Headers ----------------------------------------------------------------------------------
+-- Image Headers --------------------------------------------------------------
 -- | A wrapper for the various image header types.
 --   
 data BitmapInfo

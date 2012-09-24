@@ -36,10 +36,11 @@ data BitmapInfoV3
 	, dib3Compression	:: Compression
 
 	  -- | (+20) Size of raw image data.
-	  --   Some encoders set this to zero, so we need to calculate it based on the
-	  --   overall file size.
+	  --   Some encoders set this to zero, so we need to calculate it based
+          --   on the overall file size.
 	  -- 
-	  --   If it is non-zero then we check it matches the file size - header size.
+	  --   If it is non-zero then we check it matches the file size - header
+          --   size.
 	, dib3ImageSize		:: Word32
 
 	  -- | (+24) Prefered resolution in pixels per meter, along the X axis.
@@ -164,7 +165,8 @@ imageSizeFromBitmapInfoV3 header
                 padBytesPerLine   = if tailBytesPerLine > 0
                                         then 4 - tailBytesPerLine
                                         else 0
-          in    Just $ fromIntegral (dib3Height header * imageBytesPerLine + padBytesPerLine)
+          in    Just $ fromIntegral 
+                     $ dib3Height header * imageBytesPerLine + padBytesPerLine
 
         | otherwise
         = Nothing

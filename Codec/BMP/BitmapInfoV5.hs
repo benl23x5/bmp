@@ -20,7 +20,8 @@ data BitmapInfoV5
 	-- | Rendering intent for the bitmap.
 	, dib5Intent		:: Word32
 
-	-- | Offset (in bytes) from the beginning of the header to the start of the profile data.
+	-- | Offset (in bytes) from the beginning of the header to the start
+        --   of the profile data.
 	, dib5ProfileData	:: Word32
 
 	-- | Size (in bytes) of embedded profile data.

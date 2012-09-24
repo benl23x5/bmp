@@ -7,7 +7,8 @@ import Data.Binary
 import Data.Binary.Get
 import Data.Binary.Put 
 
--- | Contains the XYZ coordinates of a specific color in a specified color space.
+-- | Contains the XYZ coordinates of a specific color in a specified color
+--   space.
 data CIEXYZ 
 	= CIEXYZ Word32 Word32 Word32
 	deriving Show

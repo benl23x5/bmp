@@ -19,11 +19,13 @@ import Prelude			as P
 
 -- | Pack a string of RGBA component values into a BMP image.
 --	If the given dimensions don't match the input string then `error`.
---	This currently ignores the alpha component of the input string and produces a 24bit RGB image.
+--	This currently ignores the alpha component of the input string and
+--      produces a 24bit RGB image.
 packRGBA32ToBMP
 	:: Int 		-- ^ Width of image.
 	-> Int 		-- ^ Height of image.
-	-> ByteString	-- ^ A string of RGBA component values. Must have length (@width * height * 4@)
+	-> ByteString	-- ^ A string of RGBA component values.
+                        --   Must have length (@width * height * 4@)
 	-> BMP
 	
 packRGBA32ToBMP width height str

@@ -12,7 +12,7 @@ import Data.Binary.Get
 import Data.Binary.Put
 
 
--- File Headers -----------------------------------------------------------------------------------
+-- File Headers ---------------------------------------------------------------
 -- | BMP file header.
 data FileHeader
 	= FileHeader			
@@ -71,10 +71,12 @@ checkFileHeader header
 	| fileHeaderType header /= bmpMagic
 	= Just	$ ErrorBadMagic (fileHeaderType header)
 
-        | fileHeaderFileSize header < fromIntegral sizeOfFileHeader
+        | fileHeaderFileSize header 
+                < fromIntegral sizeOfFileHeader
         = Just  $ ErrorFileHeaderTruncated
 
-        | fileHeaderFileSize header < fromIntegral (sizeOfFileHeader + sizeOfBitmapInfoV3)
+        | fileHeaderFileSize header 
+                < fromIntegral (sizeOfFileHeader + sizeOfBitmapInfoV3)
         = Just  $ ErrorImageHeaderTruncated
 
 	| fileHeaderReserved1 header /= 0
@@ -83,7 +85,8 @@ checkFileHeader header
 	| fileHeaderReserved2 header /= 0
 	= Just 	$ ErrorReservedFieldNotZero
 
-	| fromIntegral (fileHeaderOffset header) /= sizeOfFileHeader + sizeOfBitmapInfoV3
+	| fromIntegral (fileHeaderOffset header) 
+                /= sizeOfFileHeader + sizeOfBitmapInfoV3
 	= Just	$ ErrorDodgyFileHeaderFieldOffset
 		$ fromIntegral $ fileHeaderOffset header
 
