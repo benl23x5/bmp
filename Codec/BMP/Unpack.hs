@@ -29,8 +29,10 @@ unpackBMPToRGBA32 bmp
 	 _	-> error "Codec.BMP.unpackBMPToRGBA32: unhandled bitcount."
 
 
--- | Unpack raw, uncompressed 24 bit BMP image data to a string of RGBA component values.
---	The alpha component is set to 255 for every pixel.
+-- | Unpack raw, uncompressed 24 bit BMP image data to a string of
+--   RGBA component values.
+--
+--   The alpha component is set to 255 for every pixel.
 packRGB24ToRGBA32
 	:: Int 			-- Width of image.
 	-> Int			-- Height of image.
@@ -48,7 +50,8 @@ packRGB24ToRGBA32 width height str
  	 else unsafePerformIO
        	 	$ allocaBytes sizeDest      $ \bufDest -> 
    	   	  BS.unsafeUseAsCString str $ \bufSrc  ->
-            	   do	packRGB24ToRGBA32' width height padPerLine (castPtr bufSrc) (castPtr bufDest)
+            	   do	packRGB24ToRGBA32' width height padPerLine
+                                (castPtr bufSrc) (castPtr bufDest)
 			packCStringLen (bufDest, sizeDest)
 
 		
@@ -81,7 +84,8 @@ packRGB24ToRGBA32' width height pad ptrSrc ptrDest
 
 
 
--- | Unpack raw, uncompressed 32 bit BMP image data to a string of RGBA component values.
+-- | Unpack raw, uncompressed 32 bit BMP image data to a string of
+--   RGBA component values.
 --   Note in the BMP file the components are arse-around ABGR instead of RGBA. 
 --   The 'unpacking' here is really just flipping the components around.
 packRGB32ToRGBA32
@@ -97,7 +101,8 @@ packRGB32ToRGBA32 width height str
  	 else unsafePerformIO
        	 	$ allocaBytes sizeDest      $ \bufDest -> 
    	   	  BS.unsafeUseAsCString str $ \bufSrc  ->
-            	   do	packRGB32ToRGBA32' width height (castPtr bufSrc) (castPtr bufDest)
+            	   do	packRGB32ToRGBA32' width height
+                                (castPtr bufSrc) (castPtr bufDest)
 			packCStringLen (bufDest, sizeDest)
 		
 -- We're doing this via Ptrs because we don't want to take the

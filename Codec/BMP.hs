@@ -8,7 +8,8 @@
 --   Writing is limited to the uncompressed 24bit RGB WindowsV3 format.
 --
 --   We don't support the plain OS/2 BitmapCoreHeader
---       and BitmapCoreHeader2 image headers, but I haven't yet seen one of these in the wild.
+--       and BitmapCoreHeader2 image headers, but I haven't yet seen one of
+--       these in the wild.
 -- 
 -- To write a file do something like:
 --

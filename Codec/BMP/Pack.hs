@@ -99,7 +99,8 @@ packRGBA32ToRGB24 width height str
    in	unsafePerformIO
 	 $ allocaBytes sizeDest 	$ \bufDest ->
 	   BS.unsafeUseAsCString str	$ \bufSrc  ->
-	    do	packRGBA32ToRGB24' width height padPerLine (castPtr bufSrc) (castPtr bufDest)
+	    do	packRGBA32ToRGB24' width height padPerLine
+                        (castPtr bufSrc) (castPtr bufDest)
 		bs	<- packCStringLen (bufDest, sizeDest)
 		return	(bs, padPerLine)
 	
