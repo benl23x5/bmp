@@ -26,10 +26,20 @@
 --      
 -- Release Notes:
 --
+--  >  * bmp 1.2.3
+--  >    Add pure parseBMP / renderBMP API.
+--  >
+--  >  * bmp 1.2.2
+--  >    Allow the physical image buffer to be larger than the image
+--  >     size stated in the header, to accept output of foolish Win7 codec.
+--  >
+--  >  * bmp 1.2.1
+--  >    Fix slow ByteString conversion via lists.  
+--  >
 --  >  * bmp 1.2.0
 --  >    Accept files with zero padding on the end of the file.
 --  >    Accept RGBA files with V3 headers.
---
+--  >
 --  >  * bmp 1.1.2   
 --  >    Accept files with the image size field set to zero.
 --
