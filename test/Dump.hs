@@ -10,5 +10,7 @@ main
 	mBMP		<- hGetBMP handle
 	case mBMP of
 	 Left err	-> print err
-	 Right bmp	-> print bmp
+	 Right bmp	
+          -> do print $ bmpFileHeader bmp
+                print $ bmpBitmapInfo bmp
 	
