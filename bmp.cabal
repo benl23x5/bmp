@@ -1,5 +1,5 @@
 Name:                bmp
-Version:             1.2.3.2
+Version:             1.2.3.3
 License:             MIT
 License-file:        LICENSE
 Author:              Ben Lippmeier
@@ -16,10 +16,8 @@ Description:
 Synopsis:
         Read and write uncompressed BMP image files.
 
-Tested-with: GHC == 7.2
-
 Library
-  Build-Depends: 
+  build-Depends: 
         base                 == 4.*,
         bytestring           == 0.10.*,
         binary               == 0.5.*
@@ -27,10 +25,13 @@ Library
   ghc-options:
         -Wall -fno-warn-missing-signatures
 
-  Exposed-modules:
+  extensions:
+        BangPatterns
+
+  exposed-modules:
         Codec.BMP
 
-  Other-modules:
+  other-modules:
         Codec.BMP.Base
         Codec.BMP.Compression
         Codec.BMP.BitmapInfo

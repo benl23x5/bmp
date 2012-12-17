@@ -17,18 +17,30 @@ import Data.ByteString		as BS
 import Data.ByteString.Unsafe	as BS
 import Prelude			as P
 
+
 -- | Pack a string of RGBA component values into a BMP image.
---	If the given dimensions don't match the input string then `error`.
---	This currently ignores the alpha component of the input string and
---      produces a 24bit RGB image.
+--
+--  * If the given dimensions don't match the input string then `error`.
+--
+--  * If the width or height fields are negative then `error`.
+--
+--  * This currently ignores the alpha component of the input string and
+--    produces a 24bit RGB image.
+--
 packRGBA32ToBMP
-	:: Int 		-- ^ Width of image.
-	-> Int 		-- ^ Height of image.
+	:: Int 		-- ^ Width of image  (must be positive).
+	-> Int 		-- ^ Height of image (must be positive).
 	-> ByteString	-- ^ A string of RGBA component values.
                         --   Must have length (@width * height * 4@)
 	-> BMP
 	
 packRGBA32ToBMP width height str
+ | width < 0
+ = error "Codec.BMP.packRGBAToBMP: negative width field."
+
+ | height < 0
+ = error "Codec.BMP.packRGBAToBMP: negative height field."
+
  | height * width * 4 /= BS.length str
  = error "Codec.BMP.packRGBAToBMP: given image dimensions don't match input data."
 
@@ -51,6 +63,7 @@ packRGBA32ToBMP width height str
 		{ dib3Size		= fromIntegral sizeOfBitmapInfoV3
 		, dib3Width		= fromIntegral width
 		, dib3Height		= fromIntegral height
+                , dib3HeightFlipped     = False
 		, dib3Planes		= 1
 		, dib3BitCount		= 24
 		, dib3Compression	= CompressionRGB

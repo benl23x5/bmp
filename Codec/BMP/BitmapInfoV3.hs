@@ -12,7 +12,9 @@ import Codec.BMP.Compression
 import Data.Binary
 import Data.Binary.Get	
 import Data.Binary.Put
+import Data.Int
 import Debug.Trace
+
 
 -- | Device Independent Bitmap (DIB) header for Windows V3.
 data BitmapInfoV3
@@ -26,6 +28,10 @@ data BitmapInfoV3
 	  -- | (+8) Height of the image, in pixels.
 	, dib3Height		:: Word32
 	
+          -- | If the height field in the file is negative then this is interpreted
+          --   as an image with the rows flipped.
+        , dib3HeightFlipped     :: Bool
+
 	  -- | (+12) Number of color planes.
 	, dib3Planes		:: Word16
 
@@ -65,9 +71,19 @@ sizeOfBitmapInfoV3 = 40
 
 instance Binary BitmapInfoV3 where
  get
-  = do	size	<- getWord32le
-	width	<- getWord32le
-	height	<- getWord32le
+  = do	size	  <- getWord32le
+	width	  <- getWord32le
+
+        -- We're supposed to treat the height field as a signed integer.
+        -- If it's negative it means the image is flipped along the X axis.
+        -- (which is crazy, but we just have to eat it)
+	heightW32 <- getWord32le
+        let heightI32 = (fromIntegral heightW32 :: Int32)
+        let (height, flipped)
+                = if heightI32 < 0
+                        then (fromIntegral (abs heightI32), True)
+                        else (heightW32,                      False)
+
 	planes	<- getWord16le
 	bitc	<- getWord16le
 	comp	<- get
@@ -81,6 +97,7 @@ instance Binary BitmapInfoV3 where
 		{ dib3Size		= size
 		, dib3Width		= width
 		, dib3Height		= height
+                , dib3HeightFlipped     = flipped
 		, dib3Planes		= planes
 		, dib3BitCount		= bitc
 		, dib3Compression	= comp
@@ -132,7 +149,8 @@ checkBitmapInfoV3 header physicalBufferSize
         --  in the header, because some encoders add padding to the end.
         | Just calculatedImageSize      <- imageSizeFromBitmapInfoV3 header
         , fromIntegral physicalBufferSize < calculatedImageSize
-        = Just  $ ErrorImageDataTruncated 
+        = trace (show header)
+        $ Just  $ ErrorImageDataTruncated 
                         calculatedImageSize
                         (fromIntegral physicalBufferSize)
 
