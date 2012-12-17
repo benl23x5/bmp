@@ -27,7 +27,7 @@ unpackBMPToRGBA32 bmp
    in	case bitCount of
 	 24	-> packRGB24ToRGBA32 width height flipX (bmpRawImageData bmp)
 	 32	-> packRGB32ToRGBA32 width height flipX (bmpRawImageData bmp)
-	 _	-> error "Codec.BMP.unpackBMPToRGBA32: unhandled bitcount."
+	 _	-> error "Codec.BMP: Unhandled bitcount."
 
 
 -- | Unpack raw, uncompressed 24 bit BMP image data to a string of
@@ -49,7 +49,7 @@ packRGB24ToRGBA32 width height flipX str
 
         -- We allow padding bytes on the end of the image data.
    in	if BS.length str < height * srcBytesPerLine
-	 then error "Codec.BMP.unpackRGB24ToRGBA32: image data is truncated."
+	 then error "Codec.BMP: Image data is truncated."
  	 else unsafePerformIO
        	 	$ allocaBytes sizeDest      $ \bufDest -> 
    	   	  BS.unsafeUseAsCString str $ \bufSrc  ->
@@ -116,7 +116,7 @@ packRGB32ToRGBA32
 packRGB32ToRGBA32 width height flipX str
   = let sizeDest = height * width * 4
     in  if  BS.length str < sizeDest
-	 then error "Codec.BMP.packRGB24ToRGBA32: image data is truncated."
+	 then error "Codec.BMP: Image data is truncated."
  	 else unsafePerformIO
        	 	$ allocaBytes sizeDest      $ \bufDest -> 
    	   	  BS.unsafeUseAsCString str $ \bufSrc  ->

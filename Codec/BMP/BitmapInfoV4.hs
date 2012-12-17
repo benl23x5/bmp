@@ -14,6 +14,7 @@ import Data.Binary
 import Data.Binary.Get	
 import Data.Binary.Put
 
+
 -- | Device Independent Bitmap (DIB) header for Windows V4 (95 and newer)
 data BitmapInfoV4
 	= BitmapInfoV4
@@ -126,7 +127,6 @@ checkBitmapInfoV4 headerV4 physicalBufferSize
 
 
 	-- Check for valid compression modes ----
-
         -- uncompressed 32bit RGBA stated as CompressionRGB.
         | dib3BitCount    headerV3 == 32
         , dib3Compression headerV3 == CompressionRGB
@@ -191,3 +191,4 @@ imageSizeFromBitmapInfoV4 headerV4
         = Nothing
 
         where   headerV3 = dib4InfoV3 headerV4
+

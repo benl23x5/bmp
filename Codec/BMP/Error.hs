@@ -5,9 +5,9 @@ where
 import Codec.BMP.Compression
 import Data.Word
 
+
 -- | Things that can go wrong when loading a BMP file.
 data Error
-
         -- | Magic number was not at the start of the file, 
         --   so this probably isn't a BMP file.
         = ErrorBadMagic

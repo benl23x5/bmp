@@ -8,6 +8,7 @@ import Data.Binary.Get
 import Data.Binary.Put
 
 
+-- | The Compression mode says how the image data is encoded in the file.
 data Compression
         = CompressionRGB
         | CompressionRLE8

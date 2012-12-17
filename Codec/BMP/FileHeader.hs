@@ -12,7 +12,6 @@ import Data.Binary.Get
 import Data.Binary.Put
 
 
--- File Headers ---------------------------------------------------------------
 -- | BMP file header.
 data FileHeader
 	= FileHeader			
@@ -33,9 +32,11 @@ data FileHeader
 	}
 	deriving (Show)
 
+
 -- | Size of a file header (in bytes).
 sizeOfFileHeader :: Int
 sizeOfFileHeader = 14
+
 
 -- | Magic number that should come at the start of a BMP file.
 bmpMagic :: Word16

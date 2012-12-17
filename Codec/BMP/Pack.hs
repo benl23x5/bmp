@@ -36,13 +36,13 @@ packRGBA32ToBMP
 	
 packRGBA32ToBMP width height str
  | width < 0
- = error "Codec.BMP.packRGBAToBMP: negative width field."
+ = error "Codec.BMP: Negative width field."
 
  | height < 0
- = error "Codec.BMP.packRGBAToBMP: negative height field."
+ = error "Codec.BMP: Negative height field."
 
  | height * width * 4 /= BS.length str
- = error "Codec.BMP.packRGBAToBMP: given image dimensions don't match input data."
+ = error "Codec.BMP: Image dimensions don't match input data."
 
  | otherwise
  = let	(imageData, _)	= packRGBA32ToRGB24 width height str
@@ -51,12 +51,15 @@ packRGBA32ToBMP width height str
 		= FileHeader
 		{ fileHeaderType	= bmpMagic
 
-		, fileHeaderFileSize	= fromIntegral
-					$ sizeOfFileHeader + sizeOfBitmapInfoV3	+ BS.length imageData
+		, fileHeaderFileSize	
+                        = fromIntegral
+			$ sizeOfFileHeader + sizeOfBitmapInfoV3	
+                                           + BS.length imageData
 
 		, fileHeaderReserved1	= 0
 		, fileHeaderReserved2	= 0
-		, fileHeaderOffset	= fromIntegral (sizeOfFileHeader + sizeOfBitmapInfoV3) }
+		, fileHeaderOffset	
+                        = fromIntegral (sizeOfFileHeader + sizeOfBitmapInfoV3)}
 
 	bitmapInfoV3
 		= BitmapInfoV3
@@ -78,9 +81,12 @@ packRGBA32ToBMP width height str
 		, dib3ColorsUsed	= 0
 		, dib3ColorsImportant	= 0 }
 		
+        -- We might as well check to see if we've made a well-formed BMP file.
+        -- It would be sad if we couldn't read a file we just wrote.
 	errs	= catMaybes		
 			[ checkFileHeader   fileHeader
-			, checkBitmapInfoV3 bitmapInfoV3 (fromIntegral $ BS.length imageData)]
+			, checkBitmapInfoV3 bitmapInfoV3 
+                                           (fromIntegral $ BS.length imageData)]
 		
    in	case errs of
 	 [] -> BMP 
@@ -88,19 +94,21 @@ packRGBA32ToBMP width height str
 		, bmpBitmapInfo		= InfoV3 bitmapInfoV3
 		, bmpRawImageData	= imageData }
 	 
-	 _  -> error $ "Codec.BMP: packRGBA32ToBMP constructed BMP file has errors, sorry.\n" ++ show errs
+	 _  -> error $ "Codec.BMP: Constructed BMP file has errors, sorry." 
+                     ++ show errs
 
 
 
 packRGBA32ToRGB24 
-	:: Int			-- ^ Width of image.
-	-> Int			-- ^ Height of image.
-	-> ByteString
-	-> (ByteString, Int)	-- output bytestring, and number of pad bytes per line.
+	:: Int		       -- ^ Width of image.
+	-> Int		       -- ^ Height of image.
+	-> ByteString          -- ^ Source bytestring holding the image data. 
+	-> (ByteString, Int)   -- output bytestring, and number of pad
+                               -- bytes per line.
 	
 packRGBA32ToRGB24 width height str
  | height * width * 4 /= BS.length str
- = error "Codec.BMP.packRGBAToRGB24: given image dimensions don't match input data."
+ = error "Codec.BMP: Image dimensions don't match input data."
 
  | otherwise
  = let	padPerLine	
@@ -135,9 +143,8 @@ packRGBA32ToRGB24' width height pad ptrSrc ptrDest
 	
 	 -- process a pixel
 	 | otherwise
-	 = do	
-		red	:: Word8  <- peekByteOff ptrSrc (oSrc + 0)
-		green	:: Word8  <- peekByteOff ptrSrc (oSrc + 1)
+	 = do   red	:: Word8  <- peekByteOff ptrSrc (oSrc + 0)
+                green	:: Word8  <- peekByteOff ptrSrc (oSrc + 1)
 		blue	:: Word8  <- peekByteOff ptrSrc (oSrc + 2)
 	
 		pokeByteOff ptrDest (oDest + 0) blue
@@ -145,5 +152,4 @@ packRGBA32ToRGB24' width height pad ptrSrc ptrDest
 		pokeByteOff ptrDest (oDest + 2) red
 		
 		go (posX + 1) posY (oSrc + 4) (oDest + 3)
-
 
