@@ -23,7 +23,7 @@ Library
   build-Depends: 
         base                 == 4.*,
         bytestring           == 0.10.*,
-        binary               == 0.5.*
+        binary               >= 0.6
 
   ghc-options:
         -Wall -fno-warn-missing-signatures

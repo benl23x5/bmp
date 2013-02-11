@@ -3,9 +3,11 @@ module Codec.BMP.BitmapInfo
 	( BitmapInfo	(..)
 	, getBitmapInfoV3)
 where
+
 import Codec.BMP.BitmapInfoV3
 import Codec.BMP.BitmapInfoV4
 import Codec.BMP.BitmapInfoV5
+import Control.Applicative 
 import Data.Binary
 import Data.Binary.Get
 
@@ -20,22 +22,20 @@ data BitmapInfo
 
 
 instance Binary BitmapInfo where
- get
-  = do	size	<- lookAhead getWord32le 
-	case size of
-	 40 -> do
-		info 	<- get
-		return	$ InfoV3 info
-		
-	 108 -> do
-		info	<- get
-		return	$ InfoV4 info
-		
-	 124 -> do
-		info	<- get
-		return	$ InfoV5 info
-		
-	 _   -> error "Codec.BMP.BitmapInfo.get: unhandled header size"
+ get = 
+  (do 40 <- getWord32le
+      info <- get
+      return $ InfoV3 info)
+  <|>
+  (do 108 <- getWord32le
+      info <- get
+      return $ InfoV4 info)
+  <|>
+  (do 120 <- getWord32le
+      info <- get
+      return $ InfoV5 info)
+  <|> 
+  (error "Codec.BMP.BitmapInfo.get: unhandled header size")
 	
  put xx
   = case xx of
