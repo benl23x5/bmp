@@ -24,9 +24,6 @@ import Prelude			as P
 --
 --  * If the width or height fields are negative then `error`.
 --
---  * This currently ignores the alpha component of the input string and
---    produces a 24bit RGB image.
---
 packRGBA32ToBMP
 	:: Int 		-- ^ Width of image  (must be positive).
 	-> Int 		-- ^ Height of image (must be positive).
@@ -45,7 +42,7 @@ packRGBA32ToBMP width height str
  = error "Codec.BMP: Image dimensions don't match input data."
 
  | otherwise
- = let	(imageData, _)	= packRGBA32ToRGB24 width height str
+ = let	(imageData, _)	= packRGBA32ToRGB32 width height str
 
 	fileHeader
 		= FileHeader
@@ -68,7 +65,7 @@ packRGBA32ToBMP width height str
 		, dib3Height		= fromIntegral height
                 , dib3HeightFlipped     = False
 		, dib3Planes		= 1
-		, dib3BitCount		= 24
+		, dib3BitCount		= 32
 		, dib3Compression	= CompressionRGB
 		, dib3ImageSize		= fromIntegral $ BS.length imageData
 
@@ -98,7 +95,7 @@ packRGBA32ToBMP width height str
                      ++ show errs
 
 
-
+{- Not used at the moment:
 packRGBA32ToRGB24 
 	:: Int		       -- ^ Width of image.
 	-> Int		       -- ^ Height of image.
@@ -152,4 +149,61 @@ packRGBA32ToRGB24' width height pad ptrSrc ptrDest
 		pokeByteOff ptrDest (oDest + 2) red
 		
 		go (posX + 1) posY (oSrc + 4) (oDest + 3)
+-}
+
+packRGBA32ToRGB32 
+	:: Int		       -- ^ Width of image.
+	-> Int		       -- ^ Height of image.
+	-> ByteString          -- ^ Source bytestring holding the image data. 
+	-> (ByteString, Int)   -- output bytestring, and number of pad
+                               -- bytes per line.
+	
+packRGBA32ToRGB32 width height str
+ | height * width * 4 /= BS.length str
+ = error "Codec.BMP: Image dimensions don't match input data."
+
+ | otherwise
+ = let	padPerLine	
+	 = case (width * 4) `mod` 4 of
+		0	-> 0
+		x	-> 4 - x
+				
+	sizeDest	= height * (width * 4 + padPerLine)
+   in	unsafePerformIO
+	 $ allocaBytes sizeDest 	$ \bufDest ->
+	   BS.unsafeUseAsCString str	$ \bufSrc  ->
+	    do	packRGBA32ToRGB32' width height padPerLine
+                        (castPtr bufSrc) (castPtr bufDest)
+		bs	<- packCStringLen (bufDest, sizeDest)
+		return	(bs, padPerLine)
+	
+			
+packRGBA32ToRGB32' width height pad ptrSrc ptrDest
+ = go 0 0 0 0
+ where
+	go posX posY oSrc oDest
+
+	 -- add padding bytes at the end of each line.
+	 | posX == width
+	 = do	mapM_ (\n -> pokeByteOff ptrDest (oDest + n) (0 :: Word8)) 
+			$ P.take pad [0 .. ]
+		go 0 (posY + 1) oSrc (oDest + pad)
+		
+	 -- we've finished the image.
+	 | posY == height
+	 = return ()
+	
+	 -- process a pixel
+	 | otherwise
+	 = do   red	:: Word8  <- peekByteOff ptrSrc (oSrc + 0)
+                green	:: Word8  <- peekByteOff ptrSrc (oSrc + 1)
+		blue	:: Word8  <- peekByteOff ptrSrc (oSrc + 2)
+		alpha	:: Word8  <- peekByteOff ptrSrc (oSrc + 3)
+	
+		pokeByteOff ptrDest (oDest + 0) blue
+		pokeByteOff ptrDest (oDest + 1) green
+		pokeByteOff ptrDest (oDest + 2) red
+		pokeByteOff ptrDest (oDest + 3) alpha
+		
+		go (posX + 1) posY (oSrc + 4) (oDest + 4)
 
