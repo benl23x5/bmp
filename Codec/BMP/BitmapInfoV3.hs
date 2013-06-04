@@ -1,4 +1,3 @@
-{-# LANGUAGE PatternGuards #-}
 {-# OPTIONS_HADDOCK hide #-}
 module Codec.BMP.BitmapInfoV3
 	( BitmapInfoV3	(..)
@@ -82,7 +81,7 @@ instance Binary BitmapInfoV3 where
         let (height, flipped)
                 = if heightI32 < 0
                         then (fromIntegral (abs heightI32), True)
-                        else (heightW32,                      False)
+                        else (heightW32,                    False)
 
 	planes	<- getWord16le
 	bitc	<- getWord16le

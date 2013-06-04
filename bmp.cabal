@@ -30,6 +30,8 @@ Library
 
   extensions:
         BangPatterns
+        ScopedTypeVariables
+        PatternGuards
 
   exposed-modules:
         Codec.BMP

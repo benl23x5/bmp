@@ -1,5 +1,4 @@
 {-# OPTIONS_HADDOCK hide #-}
-{-# LANGUAGE ScopedTypeVariables #-}
 module Codec.BMP.Unpack
 	(unpackBMPToRGBA32)
 where	
@@ -101,7 +100,6 @@ packRGB24ToRGBA32' width height flipX srcBytesPerLine ptrSrc ptrDst
 		go_line (posX + 1) posY (oSrc + 3) (oDst + 4)
 
 
-
 -- | Unpack raw, uncompressed 32 bit BMP image data to a string of
 --   RGBA component values.
 --   Note in the BMP file the components are arse-around ABGR instead of RGBA. 
@@ -124,6 +122,7 @@ packRGB32ToRGBA32 width height flipX str
                                 flipX
                                 (castPtr bufSrc) (castPtr bufDest)
 			packCStringLen (bufDest, sizeDest)
+
 		
 -- We're doing this via Ptrs because we don't want to take the
 -- overhead of doing the bounds checks in ByteString.index.

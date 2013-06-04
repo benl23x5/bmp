@@ -1,12 +1,9 @@
-{-# LANGUAGE ScopedTypeVariables, PatternGuards #-}
 
 -- | Reading and writing uncompressed BMP files.
 --
---   Reading works for both uncompressed 24bit RGB and 32bit RGBA
---   WindowsV3, WindowsV4 and WindowsV5 formats.
+--   Supports uncompressed 24bit RGB and 32bit RGBA
+--      WindowsV3, WindowsV4 and WindowsV5 formats.
 -- 
---   Writing is limited to the uncompressed 24bit RGB WindowsV3 format.
---
 --   We don't support the plain OS/2 BitmapCoreHeader
 --       and BitmapCoreHeader2 image headers, but I haven't yet seen one of
 --       these in the wild.
@@ -26,22 +23,18 @@
 --      
 -- Release Notes:
 --
+--  >  * bmp 1.2.5
+--  >    Add support for writing uncompressed 32-bit files.
+--  >
+--  >  * bmp 1.2.4
+--  >    Update to use binary 0.6.
+--  >
 --  >  * bmp 1.2.3
 --  >    Add pure parseBMP / renderBMP API.
 --  >
 --  >  * bmp 1.2.2
 --  >    Allow the physical image buffer to be larger than the image
 --  >     size stated in the header, to accept output of foolish Win7 codec.
---  >
---  >  * bmp 1.2.1
---  >    Fix slow ByteString conversion via lists.  
---  >
---  >  * bmp 1.2.0
---  >    Accept files with zero padding on the end of the file.
---  >    Accept RGBA files with V3 headers.
---  >
---  >  * bmp 1.1.2   
---  >    Accept files with the image size field set to zero.
 --
 module Codec.BMP
 	( -- * Data Structures
@@ -62,7 +55,9 @@ module Codec.BMP
 	, writeBMP, hPutBMP, renderBMP
 
           -- * Pack and Unpack
-	, packRGBA32ToBMP 
+	, packRGBA32ToBMP
+        , packRGBA32ToBMP32
+        , packRGBA32ToBMP24
 	, unpackBMPToRGBA32
 	, bmpDimensions)
 where

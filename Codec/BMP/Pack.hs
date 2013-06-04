@@ -1,5 +1,4 @@
 {-# OPTIONS_HADDOCK hide #-}
-{-# LANGUAGE ScopedTypeVariables #-}
 module Codec.BMP.Pack
         ( packRGBA32ToBMP
         , packRGBA32ToBMP24
@@ -20,10 +19,9 @@ import Data.ByteString.Unsafe	as BS
 import Prelude			as P
 
 
--------------------------------------------------------------------------------
 -- | Pack a string of RGBA component values into a 32-bit BMP image.
 --  
---   Alias for `packRGBAToBMP32`.
+--   Alias for `packRGBA32ToBMP32`.
 --
 packRGBA32ToBMP
         :: Int          -- ^ Width of image  (must be positive).

@@ -1,4 +1,3 @@
-{-# LANGUAGE PatternGuards #-}
 {-# OPTIONS_HADDOCK hide #-}
 module Codec.BMP.BitmapInfoV4
 	( BitmapInfoV4	(..)
@@ -88,7 +87,6 @@ instance Binary BitmapInfoV4 where
 	putWord32le	$ dib4GammaGreen	header
 	putWord32le	$ dib4GammaBlue		header
 
-
 	
 -- | Check headers for problems and unsupported features.	 
 --	With a V4 header we support both the uncompressed 24bit RGB format,
@@ -159,7 +157,8 @@ checkBitmapInfoV4 headerV4 physicalBufferSize
 --     set this to zero.
 --
 --   * We also can't use the physical size of  the data in the file because
---     some encoders add zero padding bytes on the end.   
+--     some encoders add zero padding bytes on the end.  
+-- 
 imageSizeFromBitmapInfoV4 :: BitmapInfoV4 -> Maybe Int
 imageSizeFromBitmapInfoV4 headerV4
         | dib3BitCount    headerV3 == 32
