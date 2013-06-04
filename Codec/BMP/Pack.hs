@@ -1,7 +1,9 @@
 {-# OPTIONS_HADDOCK hide #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 module Codec.BMP.Pack
-	(packRGBA32ToBMP)
+        ( packRGBA32ToBMP
+        , packRGBA32ToBMP24
+        , packRGBA32ToBMP32)
 where
 import Codec.BMP.Base
 import Codec.BMP.BitmapInfo
@@ -18,33 +20,94 @@ import Data.ByteString.Unsafe	as BS
 import Prelude			as P
 
 
--- | Pack a string of RGBA component values into a BMP image.
+-------------------------------------------------------------------------------
+-- | Pack a string of RGBA component values into a 32-bit BMP image.
+--  
+--   Alias for `packRGBAToBMP32`.
+--
+packRGBA32ToBMP
+        :: Int          -- ^ Width of image  (must be positive).
+        -> Int          -- ^ Height of image (must be positive).
+        -> ByteString   -- ^ A string of RGBA component values.
+                        --   Must have length (@width * height * 4@)
+        -> BMP
+
+packRGBA32ToBMP = packRGBA32ToBMP32
+{-# INLINE packRGBA32ToBMP #-}
+
+
+-- BMP 32 bit -----------------------------------------------------------------
+-- | Pack a string of RGBA component values into a 32-bit BMP image.
 --
 --  * If the given dimensions don't match the input string then `error`.
 --
 --  * If the width or height fields are negative then `error`.
 --
-packRGBA32ToBMP
-	:: Int 		-- ^ Width of image  (must be positive).
-	-> Int 		-- ^ Height of image (must be positive).
-	-> ByteString	-- ^ A string of RGBA component values.
+packRGBA32ToBMP32
+        :: Int          -- ^ Width of image  (must be positive).
+        -> Int          -- ^ Height of image (must be positive).
+        -> ByteString   -- ^ A string of RGBA component values.
                         --   Must have length (@width * height * 4@)
-	-> BMP
-	
-packRGBA32ToBMP width height str
- | width < 0
+        -> BMP
+
+packRGBA32ToBMP32 width height str
+ | width < 0    
  = error "Codec.BMP: Negative width field."
 
- | height < 0
+ | height < 0   
  = error "Codec.BMP: Negative height field."
 
  | height * width * 4 /= BS.length str
  = error "Codec.BMP: Image dimensions don't match input data."
 
  | otherwise
- = let	(imageData, _)	= packRGBA32ToRGB32 width height str
+ = let  imageData       = packRGBA32ToBGRA32 width height str
+   in   packDataToBMP 32 width height imageData
 
-	fileHeader
+
+-- BMP 24 bit -----------------------------------------------------------------
+-- | Pack a string of RGBA component values into a 24-bit BMP image,
+--   discarding the alpha channel of the source data.
+--
+--  * If the given dimensions don't match the input string then `error`.
+--
+--  * If the width or height fields are negative then `error`.
+
+packRGBA32ToBMP24
+        :: Int          -- ^ Width of image  (must be positive).
+        -> Int          -- ^ Height of image (must be positive).
+        -> ByteString   -- ^ A string of RGBA component values.
+                        --   Must have length (@width * height * 4@)
+        -> BMP
+
+packRGBA32ToBMP24 width height str
+ | width < 0    
+ = error "Codec.BMP: Negative width field."
+
+ | height < 0   
+ = error "Codec.BMP: Negative height field."
+
+ | height * width * 4 /= BS.length str
+ = error "Codec.BMP: Image dimensions don't match input data."
+
+ | otherwise
+ = let  imageData       = packRGBA32ToBGR24 width height str
+   in   packDataToBMP 24 width height imageData
+
+
+-- data -----------------------------------------------------------------------
+-- | Wrap pre-packed image data into BMP image.
+--
+packDataToBMP
+	:: Int          -- ^ Number of bits per pixel
+        -> Int 		-- ^ Width of image  (must be positive).
+	-> Int 		-- ^ Height of image (must be positive).
+	-> ByteString	-- ^ A string of RGBA component values.
+                        --   Must have length (@width * height * 4@)
+	-> BMP
+	
+packDataToBMP bits width height imageData
+ = let  fileHeader
 		= FileHeader
 		{ fileHeaderType	= bmpMagic
 
@@ -65,7 +128,7 @@ packRGBA32ToBMP width height str
 		, dib3Height		= fromIntegral height
                 , dib3HeightFlipped     = False
 		, dib3Planes		= 1
-		, dib3BitCount		= 32
+		, dib3BitCount		= fromIntegral bits
 		, dib3Compression	= CompressionRGB
 		, dib3ImageSize		= fromIntegral $ BS.length imageData
 
@@ -95,15 +158,15 @@ packRGBA32ToBMP width height str
                      ++ show errs
 
 
-{- Not used at the moment:
-packRGBA32ToRGB24 
+-------------------------------------------------------------------------------
+-- | Pack RGBA data into the format need by BMP image data.
+packRGBA32ToBGR24 
 	:: Int		       -- ^ Width of image.
 	-> Int		       -- ^ Height of image.
 	-> ByteString          -- ^ Source bytestring holding the image data. 
-	-> (ByteString, Int)   -- output bytestring, and number of pad
-                               -- bytes per line.
+	-> ByteString          --   output bytestring.
 	
-packRGBA32ToRGB24 width height str
+packRGBA32ToBGR24 width height str
  | height * width * 4 /= BS.length str
  = error "Codec.BMP: Image dimensions don't match input data."
 
@@ -117,13 +180,13 @@ packRGBA32ToRGB24 width height str
    in	unsafePerformIO
 	 $ allocaBytes sizeDest 	$ \bufDest ->
 	   BS.unsafeUseAsCString str	$ \bufSrc  ->
-	    do	packRGBA32ToRGB24' width height padPerLine
+	    do	packRGBA32ToBGR24' width height padPerLine
                         (castPtr bufSrc) (castPtr bufDest)
 		bs	<- packCStringLen (bufDest, sizeDest)
-		return	(bs, padPerLine)
+		return bs
 	
 			
-packRGBA32ToRGB24' width height pad ptrSrc ptrDest
+packRGBA32ToBGR24' width height pad ptrSrc ptrDest
  = go 0 0 0 0
  where
 	go posX posY oSrc oDest
@@ -149,45 +212,38 @@ packRGBA32ToRGB24' width height pad ptrSrc ptrDest
 		pokeByteOff ptrDest (oDest + 2) red
 		
 		go (posX + 1) posY (oSrc + 4) (oDest + 3)
--}
 
-packRGBA32ToRGB32 
+
+-------------------------------------------------------------------------------
+-- | Pack RGBA data into the byte order needed by BMP image data.
+packRGBA32ToBGRA32 
 	:: Int		       -- ^ Width of image.
 	-> Int		       -- ^ Height of image.
 	-> ByteString          -- ^ Source bytestring holding the image data. 
-	-> (ByteString, Int)   -- output bytestring, and number of pad
-                               -- bytes per line.
-	
-packRGBA32ToRGB32 width height str
+	-> ByteString          
+
+packRGBA32ToBGRA32 width height str
  | height * width * 4 /= BS.length str
  = error "Codec.BMP: Image dimensions don't match input data."
 
  | otherwise
- = let	padPerLine	
-	 = case (width * 4) `mod` 4 of
-		0	-> 0
-		x	-> 4 - x
-				
-	sizeDest	= height * (width * 4 + padPerLine)
+ = let  sizeDest	= height * (width * 4)
    in	unsafePerformIO
 	 $ allocaBytes sizeDest 	$ \bufDest ->
 	   BS.unsafeUseAsCString str	$ \bufSrc  ->
-	    do	packRGBA32ToRGB32' width height padPerLine
+	    do	packRGBA32ToBGRA32' width height
                         (castPtr bufSrc) (castPtr bufDest)
 		bs	<- packCStringLen (bufDest, sizeDest)
-		return	(bs, padPerLine)
+		return	bs
 	
-			
-packRGBA32ToRGB32' width height pad ptrSrc ptrDest
+packRGBA32ToBGRA32' width height ptrSrc ptrDest
  = go 0 0 0 0
  where
 	go posX posY oSrc oDest
 
-	 -- add padding bytes at the end of each line.
+	 -- advance to the next line.
 	 | posX == width
-	 = do	mapM_ (\n -> pokeByteOff ptrDest (oDest + n) (0 :: Word8)) 
-			$ P.take pad [0 .. ]
-		go 0 (posY + 1) oSrc (oDest + pad)
+	 = do  go 0 (posY + 1) oSrc oDest
 		
 	 -- we've finished the image.
 	 | posY == height
