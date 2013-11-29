@@ -3,11 +3,9 @@ bmp
 
 Reading and writing uncompressed BMP files.
 
-Supports uncompressed 24bit RGB and 32bit RGBA WindowsV3, WindowsV4
-and WindowsV5 formats.
+* Supports uncompressed 24bit RGB and 32bit RGBA WindowsV3, WindowsV4 and WindowsV5 formats.
  
-We don't support the plain OS/2 BitmapCoreHeader and BitmapCoreHeader2 
-image headers, but I haven't yet seen one of these in the wild.
+* We don't support the plain OS/2 BitmapCoreHeader and BitmapCoreHeader2 image headers, but I haven't yet seen one of these in the wild.
  
 To write a file do something like:
 
