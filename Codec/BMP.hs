@@ -1,4 +1,3 @@
-
 -- | Reading and writing uncompressed BMP files.
 --
 --   Supports uncompressed 24bit RGB and 32bit RGBA
@@ -71,7 +70,6 @@ import Codec.BMP.BitmapInfoV3
 import Codec.BMP.BitmapInfoV4
 import Codec.BMP.BitmapInfoV5
 import System.IO
-import Data.ByteString          as BS
 import Data.ByteString.Lazy     as BSL
 import Data.Binary
 import Data.Binary.Get
@@ -176,7 +174,7 @@ parseBMP4 fileHeader imageHeader bufImage (sizeImage :: Int)
          else Right $ BMP
                 { bmpFileHeader         = fileHeader
                 , bmpBitmapInfo         = imageHeader
-                , bmpRawImageData       = BS.concat $ BSL.toChunks bufImage }
+                , bmpRawImageData       = BSL.toStrict bufImage }
 
 
 -- Writing --------------------------------------------------------------------
@@ -198,8 +196,8 @@ hPutBMP h bmp
 -- | Render a BMP image to a lazy `ByteString`.
 renderBMP :: BMP -> BSL.ByteString
 renderBMP bmp
-        = BSL.append    (encode $ bmpFileHeader bmp)
-        $ BSL.append    (encode $ bmpBitmapInfo bmp)
+        = BSL.append (encode $ bmpFileHeader bmp)
+        $ BSL.append (encode $ bmpBitmapInfo bmp)
         $ BSL.fromStrict (bmpRawImageData bmp)
 
 
