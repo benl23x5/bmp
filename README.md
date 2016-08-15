@@ -21,7 +21,9 @@ To read a file do something like:
        ...
   
 
-### PULL REQUESTS
+
+PULL REQUESTS
+-------------
 
 As `bmp` is now fairly stable, I typically make releases only when there is a new GHC version. If you have added a new feature or fixed a bug, and want your pull request merged sooner than that, then send email to benl AT ouroborus.net. I don't pay attention to github notifications, but am happy to receive emails from people. If you have changed any internal functionality then please test that all the example images under `data/` still load with the `test/Dump.hs` harness. 
 
