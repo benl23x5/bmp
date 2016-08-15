@@ -71,7 +71,6 @@ import Codec.BMP.BitmapInfoV3
 import Codec.BMP.BitmapInfoV4
 import Codec.BMP.BitmapInfoV5
 import System.IO
-import Data.ByteString          as BS
 import Data.ByteString.Lazy     as BSL
 import Data.Binary
 import Data.Binary.Get
@@ -176,7 +175,7 @@ parseBMP4 fileHeader imageHeader bufImage (sizeImage :: Int)
          else Right $ BMP 
                 { bmpFileHeader         = fileHeader
                 , bmpBitmapInfo         = imageHeader
-                , bmpRawImageData       = BS.concat $ BSL.toChunks bufImage }
+                , bmpRawImageData       = BSL.toStrict bufImage }
 
 
 -- Writing --------------------------------------------------------------------
