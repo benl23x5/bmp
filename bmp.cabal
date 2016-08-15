@@ -1,5 +1,5 @@
 Name:                bmp
-Version:             1.2.5.1
+Version:             1.2.6.2
 License:             MIT
 License-file:        LICENSE
 Author:              Ben Lippmeier
@@ -23,7 +23,7 @@ Library
   build-Depends: 
         base                 == 4.*,
         bytestring           == 0.10.*,
-        binary               == 0.6.*
+        binary               >= 0.6 && < 0.9
 
   ghc-options:
         -O2 -Wall -fno-warn-missing-signatures

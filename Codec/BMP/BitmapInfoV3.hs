@@ -1,15 +1,15 @@
 {-# OPTIONS_HADDOCK hide #-}
 module Codec.BMP.BitmapInfoV3
-	( BitmapInfoV3	(..)
-	, Compression (..)
-	, sizeOfBitmapInfoV3
-	, checkBitmapInfoV3
+        ( BitmapInfoV3  (..)
+        , Compression (..)
+        , sizeOfBitmapInfoV3
+        , checkBitmapInfoV3
         , imageSizeFromBitmapInfoV3)
 where
 import Codec.BMP.Error
 import Codec.BMP.Compression
 import Data.Binary
-import Data.Binary.Get	
+import Data.Binary.Get  
 import Data.Binary.Put
 import Data.Int
 import Debug.Trace
@@ -17,50 +17,50 @@ import Debug.Trace
 
 -- | Device Independent Bitmap (DIB) header for Windows V3.
 data BitmapInfoV3
-	= BitmapInfoV3			
-	{ -- | (+0) Size of the image header, in bytes.
-	  dib3Size		:: Word32
+        = BitmapInfoV3                  
+        { -- | (+0) Size of the image header, in bytes.
+          dib3Size              :: Word32
 
-	  -- | (+4) Width of the image, in pixels.
-	, dib3Width		:: Word32
-	
-	  -- | (+8) Height of the image, in pixels.
-	, dib3Height		:: Word32
-	
+          -- | (+4) Width of the image, in pixels.
+        , dib3Width             :: Word32
+        
+          -- | (+8) Height of the image, in pixels.
+        , dib3Height            :: Word32
+        
           -- | If the height field in the file is negative then this is interpreted
           --   as an image with the rows flipped.
         , dib3HeightFlipped     :: Bool
 
-	  -- | (+12) Number of color planes.
-	, dib3Planes		:: Word16
+          -- | (+12) Number of color planes.
+        , dib3Planes            :: Word16
 
-	  -- | (+14) Number of bits per pixel.
-	, dib3BitCount		:: Word16
+          -- | (+14) Number of bits per pixel.
+        , dib3BitCount          :: Word16
 
-	  -- | (+16) Image compression mode.
-	, dib3Compression	:: Compression
+          -- | (+16) Image compression mode.
+        , dib3Compression       :: Compression
 
-	  -- | (+20) Size of raw image data.
-	  --   Some encoders set this to zero, so we need to calculate it based
+          -- | (+20) Size of raw image data.
+          --   Some encoders set this to zero, so we need to calculate it based
           --   on the overall file size.
-	  -- 
-	  --   If it is non-zero then we check it matches the file size - header
+          -- 
+          --   If it is non-zero then we check it matches the file size - header
           --   size.
-	, dib3ImageSize		:: Word32
+        , dib3ImageSize         :: Word32
 
-	  -- | (+24) Prefered resolution in pixels per meter, along the X axis.
-	, dib3PelsPerMeterX	:: Word32
+          -- | (+24) Prefered resolution in pixels per meter, along the X axis.
+        , dib3PelsPerMeterX     :: Word32
 
-	  -- | (+28) Prefered resolution in pixels per meter, along the Y axis.
-	, dib3PelsPerMeterY	:: Word32
+          -- | (+28) Prefered resolution in pixels per meter, along the Y axis.
+        , dib3PelsPerMeterY     :: Word32
 
-	  -- | (+32) Number of color entries that are used.
-	, dib3ColorsUsed	:: Word32
+          -- | (+32) Number of color entries that are used.
+        , dib3ColorsUsed        :: Word32
 
-	  -- | (+36) Number of significant colors.
-	, dib3ColorsImportant	:: Word32
-	}
-	deriving (Show)
+          -- | (+36) Number of significant colors.
+        , dib3ColorsImportant   :: Word32
+        }
+        deriving (Show)
 
 
 -- | Size of `BitmapInfoV3` header (in bytes)
@@ -70,68 +70,68 @@ sizeOfBitmapInfoV3 = 40
 
 instance Binary BitmapInfoV3 where
  get
-  = do	size	  <- getWord32le
-	width	  <- getWord32le
+  = do  size      <- getWord32le
+        width     <- getWord32le
 
         -- We're supposed to treat the height field as a signed integer.
         -- If it's negative it means the image is flipped along the X axis.
         -- (which is crazy, but we just have to eat it)
-	heightW32 <- getWord32le
+        heightW32 <- getWord32le
         let heightI32 = (fromIntegral heightW32 :: Int32)
         let (height, flipped)
                 = if heightI32 < 0
                         then (fromIntegral (abs heightI32), True)
                         else (heightW32,                    False)
 
-	planes	<- getWord16le
-	bitc	<- getWord16le
-	comp	<- get
-	imgsize	<- getWord32le
-	pelsX	<- getWord32le
-	pelsY	<- getWord32le
-	cused	<- getWord32le
-	cimp	<- getWord32le
-	
-	return	$ BitmapInfoV3
-		{ dib3Size		= size
-		, dib3Width		= width
-		, dib3Height		= height
+        planes  <- getWord16le
+        bitc    <- getWord16le
+        comp    <- get
+        imgsize <- getWord32le
+        pelsX   <- getWord32le
+        pelsY   <- getWord32le
+        cused   <- getWord32le
+        cimp    <- getWord32le
+        
+        return  $ BitmapInfoV3
+                { dib3Size              = size
+                , dib3Width             = width
+                , dib3Height            = height
                 , dib3HeightFlipped     = flipped
-		, dib3Planes		= planes
-		, dib3BitCount		= bitc
-		, dib3Compression	= comp
-		, dib3ImageSize		= imgsize
-		, dib3PelsPerMeterX	= pelsX
-		, dib3PelsPerMeterY	= pelsY
-		, dib3ColorsUsed	= cused
-		, dib3ColorsImportant	= cimp }
+                , dib3Planes            = planes
+                , dib3BitCount          = bitc
+                , dib3Compression       = comp
+                , dib3ImageSize         = imgsize
+                , dib3PelsPerMeterX     = pelsX
+                , dib3PelsPerMeterY     = pelsY
+                , dib3ColorsUsed        = cused
+                , dib3ColorsImportant   = cimp }
 
  put header
-  = do	putWord32le 	$ dib3Size header
-	putWord32le	$ dib3Width header
-	putWord32le	$ dib3Height header
-	putWord16le	$ dib3Planes header
-	putWord16le	$ dib3BitCount header
-	put		$ dib3Compression header
-	putWord32le	$ dib3ImageSize header
-	putWord32le	$ dib3PelsPerMeterX header
-	putWord32le	$ dib3PelsPerMeterY header
-	putWord32le	$ dib3ColorsUsed header
-	putWord32le	$ dib3ColorsImportant header
-	
-		
--- | Check headers for problems and unsupported features.	 
+  = do  putWord32le     $ dib3Size header
+        putWord32le     $ dib3Width header
+        putWord32le     $ dib3Height header
+        putWord16le     $ dib3Planes header
+        putWord16le     $ dib3BitCount header
+        put             $ dib3Compression header
+        putWord32le     $ dib3ImageSize header
+        putWord32le     $ dib3PelsPerMeterX header
+        putWord32le     $ dib3PelsPerMeterY header
+        putWord32le     $ dib3ColorsUsed header
+        putWord32le     $ dib3ColorsImportant header
+        
+                
+-- | Check headers for problems and unsupported features.        
 checkBitmapInfoV3 :: BitmapInfoV3 -> Word32 -> Maybe Error
 checkBitmapInfoV3 header physicalBufferSize
 
         -- We only handle a single color plane.
-	| dib3Planes header /= 1
-	= Just	$ ErrorUnhandledPlanesCount $ dib3Planes header
-	
+        | dib3Planes header /= 1
+        = Just  $ ErrorUnhandledPlanesCount $ dib3Planes header
+        
         -- We only handle 24 and 32 bit images.
-	| dib3BitCount header /= 24
+        | dib3BitCount header /= 24
         , dib3BitCount header /= 32
-	= Just 	$ ErrorUnhandledColorDepth $ dib3BitCount header
+        = Just  $ ErrorUnhandledColorDepth $ dib3BitCount header
 
         -- If the image size field in the header is non-zero, 
         -- then it must be less than the physical size of the image buffer.
@@ -158,9 +158,9 @@ checkBitmapInfoV3 header physicalBufferSize
          && dib3Compression header /= CompressionBitFields
         = Just  $ ErrorUnhandledCompressionMode (dib3Compression header)
 
-	| otherwise
-	= Nothing
-	
+        | otherwise
+        = Nothing
+        
 
 -- | Compute the size of the image data from the header.
 --

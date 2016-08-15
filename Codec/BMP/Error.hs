@@ -1,6 +1,6 @@
 {-# OPTIONS_HADDOCK hide #-}
 module Codec.BMP.Error
-	(Error(..))
+        (Error(..))
 where
 import Codec.BMP.Compression
 import Data.Word
@@ -14,39 +14,39 @@ data Error
         { errorMagic            :: Word16 }
 
         -- | File is too short to contain a file header.
-	| ErrorFileHeaderTruncated
+        | ErrorFileHeaderTruncated
 
         -- | File is too short to contain an image header.
-	| ErrorImageHeaderTruncated
+        | ErrorImageHeaderTruncated
 
         -- | File is too short to contain the image data.
-	| ErrorImageDataTruncated
+        | ErrorImageDataTruncated
         { errorBytesNeeded      :: Int
         , errorBytesAvailable   :: Int }
 
         -- | Reserved fields should be zero.
-	| ErrorReservedFieldNotZero
+        | ErrorReservedFieldNotZero
 
         -- | The offset to the image data from the file header doesn't
         --   point anywhere sensible.
-	| ErrorDodgyFileHeaderFieldOffset
+        | ErrorDodgyFileHeaderFieldOffset
         { errorFileHeaderOffset :: Word32 }
 
         -- | We handle V3 V4 and V5 image headers, but the size of 
         --   the header indicates it has some other format.
-	| ErrorUnhandledBitmapHeaderSize
+        | ErrorUnhandledBitmapHeaderSize
         { errorBitmapHeaderSize :: Word32 }
 
         -- | We only handle single color planes.
-	| ErrorUnhandledPlanesCount
+        | ErrorUnhandledPlanesCount
         { errorPlanesCount      :: Word16 }
 
         -- | We only handle 24 and 32 bit images.
-	| ErrorUnhandledColorDepth
+        | ErrorUnhandledColorDepth
         { errorColorDepth       :: Word16 }
 
         -- | We only handle uncompressed images.
-	| ErrorUnhandledCompressionMode
+        | ErrorUnhandledCompressionMode
         { errorCompression      :: Compression}
 
         -- | Mismatch between the image size stated in the header
@@ -57,5 +57,5 @@ data Error
 
         -- | Something went wrong in the library.
         | ErrorInternalErrorPleaseReport
-	deriving (Eq, Show)
+        deriving (Eq, Show)
 
