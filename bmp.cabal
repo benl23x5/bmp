@@ -5,7 +5,7 @@ License-file:        LICENSE
 Author:              Ben Lippmeier
 Maintainer:          benl@ouroborus.net
 Build-Type:          Simple
-Cabal-Version:       >=1.8
+Cabal-Version:       >=1.10
 Stability:           stable
 Category:            Codec
 Homepage:            https://github.com/benl23x5/bmp
