@@ -28,7 +28,10 @@ Library
   ghc-options:
         -O2 -Wall -fno-warn-missing-signatures
 
-  extensions:
+  default-language:
+        Haskell98
+
+  default-extensions:
         BangPatterns
         ScopedTypeVariables
         PatternGuards
