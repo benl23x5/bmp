@@ -22,7 +22,7 @@ source-repository head
 Library
   build-Depends: 
         base                 == 4.*,
-        bytestring           >= 0.10 && < 0.12,
+        bytestring           >= 0.10 && < 0.13,
         binary               >= 0.6 && < 0.9
 
   ghc-options:
