@@ -113,10 +113,10 @@ parseBMP2 buf fileHeader
         -- The first word tells us how long it is.
         sizeHeader      = runGet getWord32le buf
 
-        -- split off the image header
-        bufImageHeader
-                = BSL.take (fromIntegral sizeHeader) buf
-        bufRest = BSL.drop (fromIntegral (fromIntegral (fileHeaderOffset fileHeader) - sizeOfFileHeader)) buf
+        -- Split off the image header
+        bufImageHeader  = BSL.take (fromIntegral sizeHeader) buf
+        bufRest         = BSL.drop (fromIntegral (fromIntegral (fileHeaderOffset fileHeader) - sizeOfFileHeader)) buf
+
         -- How much non-header data is present in the file.
         -- For uncompressed data without a colour table, the remaining data
         -- should be the image, but there may also be padding bytes on the
